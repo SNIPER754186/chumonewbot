@@ -317,7 +317,7 @@ echo -e "\033[1;33mDescargando archivos... ESPERE "
 msg -bar3
 
 # Descarga el .zip
-wget -q --no-check-certificate -O $HOME/files.zip https://github.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/raw/main/source/file.zip
+wget -q --no-check-certificate -O $HOME/files.zip https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/source/source.zip
 
 # Prepara la carpeta update
 [[ -d $HOME/update ]] && rm -rf $HOME/update/* || mkdir $HOME/update
