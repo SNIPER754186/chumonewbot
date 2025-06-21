@@ -50,7 +50,7 @@ MIP2=$(wget -qO- ipv4.icanhazip.com)
 function_verify () {
 unset keybot
 
-permited=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/source/Control-Bot.txt") 
+permited=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt") 
 
   [[ $(echo $permited|grep "${IP}") = "" ]] && {
   clear

@@ -2,25 +2,11 @@
 # -*- ENCODING: UTF-8 -*-
 #https://github.com/joao-lucas/ShellBot
 
-#TOKEN BOT
-bot_token=$1 
-#ID ADMINISTRADOR
-permited=$2
-#NOMBRE-USUARIOS-FILE
-usersAUTH=$3
-#ALIAS DE ADMINISTRADOR
-alias_admin=$4
-[[ -z ${bot_token} ]] && exit
-[[ -z ${permited} ]] && exit
-[[ -z ${usersAUTH} ]] && usersAUTH=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 5 | head -n 1)
-[[ -z ${alias_admin} ]] && exit
-#permited=$(echo -e "${permited}" | awk '{print $1}')
 CIDdir=/etc/ADM-db && [[ ! -d ${CIDdir} ]] && mkdir ${CIDdir}
 CIDimg=/etc/tokenIMG && [[ ! -d ${CIDimg} ]] && mkdir ${CIDimg}
 SRC="${CIDdir}/sources" && [[ ! -d ${SRC} ]] && mkdir ${SRC}
-CID="${CIDdir}/User-${usersAUTH}" && [[ ! -e ${CID} ]] && echo > ${CID}
+CID="${CIDdir}/User-ID" && [[ ! -e ${CID} ]] && echo > ${CID}
 keytxt="${CIDdir}/keys" && [[ ! -d ${keytxt} ]] && mkdir ${keytxt}
-[[ -d /root/RegBOT ]] || mkdir /root/RegBOT
 timg="${CIDimg}/img" && [[ ! -d ${timg} ]] && mkdir ${timg}
 [[ $(dpkg --get-selections|grep -w "jq"|head -1) ]] || apt-get install jq -y &>/dev/null
 #[[ ! -e "/bin/ShellBot.sh" ]] && wget -O /bin/ShellBot.sh https://www.dropbox.com/s/iyce2b0e180wynr/ShellBot.sh &> /dev/null
@@ -39,177 +25,45 @@ _globales=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbo
 # Importando API
 source ShellBot.sh
 
+call.barras(){
+local _sim=$1
+local _col=$2
+	for (( i = 0; i < ${_col}; i++ )); do
+		echo -ne "${_sim}"
+	done
+}
+
+
 [[ -e ${SRC}/menu ]] && source ${SRC}/menu
-#[[ -e ${SRC}/ayuda ]] && source ${SRC}/ayuda
+[[ -e ${SRC}/ayuda ]] && source ${SRC}/ayuda
 [[ -e ${SRC}/cache ]] && source ${SRC}/cache
 [[ -e ${SRC}/invalido ]] && source ${SRC}/invalido
 [[ -e ${SRC}/status ]] && source ${SRC}/status
 [[ -e ${SRC}/reinicio ]] && source ${SRC}/reinicio
 [[ -e /bin/ejecutar/IPcgh ]] && _myIP=$(cat < /bin/ejecutar/IPcgh)
-#[[ -e ${SRC}/id ]] && source ${SRC}/id
+[[ -e ${SRC}/id ]] && source ${SRC}/id
 [[ -e ${SRC}/back_ID ]] && source ${SRC}/back_ID
 [[ -e ${SRC}/link ]] && source ${SRC}/link
-#[[ -e ${SRC}/listID ]] && source ${SRC}/listID
+[[ -e ${SRC}/listID ]] && source ${SRC}/listID
 [[ -e ${SRC}/gerar_key ]] && source ${SRC}/gerar_key
 [[ -e ${SRC}/power ]] && source ${SRC}/power
-#[[ -e ${SRC}/comandos ]] && source ${SRC}/comandos
+[[ -e ${SRC}/comandos ]] && source ${SRC}/comandos
 [[ -e ${SRC}/donar ]] && source ${SRC}/donar
 [[ -e ${SRC}/costes ]] && source ${SRC}/costes
 #source ${SRC}/kill_drop.sh
 titulosC='Bienvenido al BotGen ADMcgh/Plus'
-
+# Token del bot
+bot_token="$(cat ${CIDdir}/token)"
 
 # Inicializando el bot
 ShellBot.init --token "$bot_token" --monitor --flush --return map
 ShellBot.username
 
 
-
-
-comand () {
-	    if [[ $(echo $permited|grep "${chatuser}") = "" ]]; then
-		 if [[ $(cat ${CID}|grep "${chatuser}") = "" ]]; then
-			 case ${comando[0]} in
-				 /[Ii]d|/[Ii]D)myid_src &;;
-				 /[Mm]enu|[Mm]enu|/[Ss]tart|[Ss]tart|[Cc]omensar|/[Cc]omensar)menu_src &;;
-				 /[Aa]yuda|[Aa]yuda|[Hh]elp|/[Hh]elp)ayuda_src &;;
-				 /[Dd]onar|[Dd]onar)donar &;;
-				 /[Ii]mg|[Ii]mg)reply &;;
-				 /[Pp]rice|[Pp]price|[Pp]rices|/[Pp]rices)prices_on &;;
-				 /sendid)send_ID &;;
-				 /chekid)send_ID &;;
-				 /kfree) kads &;;
-				 #/folteto)reply &;;
-				 /[Uu]pfile|[Uu]pfile|[Uu]pfile|/[Uu]pfile)reply &;;
-				 /[Tt]erm|[Tt]erm)call.terminos &;;
-				 /[Cc]upon|[Cc]upon)reply &;;
-				 /[Rr]cupon|[Rr]cupon)call.cange.cuponC "${comando[1]}" &;;
-				 /*|*)invalido_fun &;;
-			 esac
-			 if [[ ${message_reply_to_message_message_id[$id]} ]]; then
-				case ${message_reply_to_message_text[$id]} in
-					'/cupon')call.cange.cupon;;
-					'/hsjdhsdhjsgdf')Cat.BOTON;;
-					#*)invalido_fun;;
-				esac
-			return
-			fi
-		 else
-		 	if [[ ${message_text[$id]} || ${callback_query_data[$id]} ]]; then
-			 case ${comando[0]} in
-				 /[Mm]enu|[Mm]enu|/[Ss]tart|[Ss]tart|[Cc]omensar|/[Cc]omensar)menu_src &;;
-				 /[Aa]yuda|[Aa]yuda|[Hh]elp|/[Hh]elp)ayuda_src &;;
-				 /[Ii]d|/[Ii]D)myid_src &;;
-				 /[Ii]nstal)link_src &;;
-				 /[Kk]eygen)gerar_key &;;
-				 /[Rr]estart)call.revoc &;;
-				 /[Kk]ltm)gerar_keyLTM &;;
-				 /[Bb]anIP|[Bb]anIP)reply &;;
-				 /[Pp]rice|[Pp]price|[Pp]rices|/[Pp]rices)prices_on &;;
-				 /[Dd]onar|[Dd]onar)donar &;;
-				 /[Uu]pfile|[Uu]pfile|[Uu]pfile|/[Uu]pfile)reply & ;;
-				 /[Aa]ddrev|/[Rr]emote|/folteto)reply &;;
-				 /[Dd]omainA|[Dd]omainA|[Dd]omainNS|/[Dd]omainNS|/domainns|/domaina)reply &;;
-				 /[Cc]cupon|[Cc]cupon)reply &;;
-				 /upfile)reply &;;
-				 /*|*)invalido_fun &;;
-			 esac
-			fi
-			if [[ ${message_reply_to_message_message_id[$id]} ]]; then
-				case ${message_reply_to_message_text[$id]} in
-					#'/domainA')call.domainA;;
-					/[Dd]omainA|[Dd]omainA|/domaina)call.domainA;;
-					'/remote')call.remote;;
-					#'/domainNS')call.domainNS;;
-					[Dd]omainNS|/[Dd]omainNS|/domainns)call.domainNS;;
-					'/addrev')addID_reventa;;
-					'/banIP')killIP_reply;;
-					'/upfile')download_FAC;;
-					'/folteto')dupdate2;;
-					'/img')img_reply;;
-					'/ccupon')call.CrearCuponNew ;;
-					#'/cupon')call.cange.cupon ;;
-					*)invalido_fun;;
-				esac
-			return
-			fi
-			sleep .1
-		 fi
-	    else
-	    	if [[ ${message_reply_to_message_message_id[$id]} ]]; then
-				case ${message_reply_to_message_text[$id]} in
-					'/del')deleteID_reply;;
-					'/chat')call.msgENV;;
-					'/remote')call.remote;;
-					'/domainA')call.domainA;;
-					'/domainNS')call.domainNS;;
-					'/add')addID_reply;;
-					'/addrev')addID_reventa;;
-					'/buscar')searchID_reply;;
-					'/banID')call.banID;;
-					'/Uban')call.UbanID;;
-					'/banIP')killIP_reply;;
-					'/upfile')download_FAC;;
-					'/folteto')dupdate2;;
-					'/img')img_reply;;
-					'/CPrecios')call.cambio_precios;;
-					'/ccupon')call.CrearCuponNew;;
-					*)invalido_fun;;
-				esac
-
-			elif [[ ${message_document_file_id[$id]} ]]; then
-					 download_file
-
-	    	elif [[ ${message_text[$id]} || ${callback_query_data[$id]} ]]; then
-
-		 		case ${comando[0]} in
-					 /[Mm]enu|[Mm]enu|/[Ss]tart|[Ss]tart|[Cc]omensar|/[Cc]omensar)menu_src &;;
-					 /[Dd]omainA|[Dd]omainA|[Dd]omainNS|/[Dd]omainNS|/domainns|/domaina)reply &;;
-					 /[Aa]yuda|[Aa]yuda|[Hh]elp|/[Hh]elp)ayuda_src &;;
-					 /[Ii]d|/[Ii]D)myid_src &;;
-					 /[Kk]illid|[Kk]illid) dropID &;;
-					 #/[Cc]hat|[Ch]hat)msj_chat &;;
-					 /[Cc]hat|[Ch]hat)reply &;;
-					 /[Ii]mg|[Ii]mg)reply &;;
-					 /[Aa]dd|/[Dd]el)reply &;;
-					 /upfile)reply &;;
-					 /banID)reply &;;
-					 /Uban)reply &;;
-					 /[Rr]estart)call.revoc &;;
-					 /[Aa]ddrev|/[Rr]emote|/folteto)reply &;;
-					 /[Bb]uscar|[Bb]uscar)reply &;;
-					 /[Bb]anIP|[Bb]anIP)reply &;;
-					 /[Cc]atip|[Cc]atip)list_IP &;;
-					 /[Pp]ower)start_gen &;;
-					 /[Kk]eygen)gerar_key &;;
-					 /[Kk]eyplus)gerar_plus &;;
-					 /[Kk]ltm)gerar_keyLTM &;;
-			 		 /[Ii]nfosys)infosys_src &;;
-			 		 /[Ll]ist)listID_src &;;
-			 		 /[Ii]dgen|[Ii]dgen)listID_GEN &;;
-					 /[Rr]eboot)reboot_src &;;
-			 		 /[Ii]nstal)link_src &;;
-			 		 /[Cc]ache)cache_src &;;
-					 /[Uu]pdate|/[Aa]ctualizar)update &;;
-					 /[Dd]onar|[Dd]onar)donar_OnOff &;;
-					 /[Pp]rice|[Pp]price|[Pp]rices|/[Pp]rices)prices_on &;;
-					 /[Uu]pfile|[Uu]pfile|[Uu]pfile|/[Uu]pfile)reply & ;;
-					 /[Cc]Precios)reply & ;;
-					 /[Cc]upon|/[Cc]cupon)reply & ;;
-					 /aggBT) addID_reply &;;
-					 /kfree) kads &;;
-					 /kid) _killID &;;
-			 		 /*|*)invalido_fun &;;
-				esac
-
-			fi
-
-	    fi
-}
-
 _killID(){
 if [[ ! -e /etc/systemd/system/btkill.service ]]; then
 wget -O /etc/ADM-db/sources/kill_drop.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/kill_drop.sh
+
 [[ -e /etc/ADM-db/sources/kill_drop.sh  ]] && chmod +x /etc/ADM-db/sources/kill_drop.sh 
 local MSG_id=$((${message_message_id} + 1 ))
 echo -e "[Unit]
@@ -276,13 +130,59 @@ reply () {
 	[[ "${callback_query_data}" = '/folteto' || "${message_text}" = '/folteto' ]] && dupdate2
 	[[ "${callback_query_data}" = '/CPrecios' || "${message_text}" = '/CPrecios' ]] && call.MPrecios
 	[[ "${callback_query_data}" = /cupon || "${message_text}" = /cupon ]] && call.cupon
-	[[ "${callback_query_data}" = /kid || "${message_text}" = /kid ]] && _killID
+	[[ "${callback_query_data}" = /notify || "${message_text}" = /notify ]] && call.notify
 	[[ "${callback_query_data}" = /ccupon || "${message_text}" = /ccupon ]] && call.CREARcupon
-	[[ "${callback_query_data}" = /domainA || "${message_text}" = /domainA || "${callback_query_data}" = '/domaina' || "${message_text}" = '/domaina' ]] && call.domain
+	[[ "${callback_query_data}" = /cfj || "${message_text}" = /cfj ]] && call.CREARcuponFJ
+	[[ "${callback_query_data}" = /domainA || "${message_text}" = /domainA || "${callback_query_data}" = /domaina || "${message_text}" = /domaina ]] && call.domain
 	[[ "${callback_query_data}" = /chat || "${message_text}" = /chat ]] && call.msgUSER
-	[[ "${callback_query_data}" = /domainNS || "${message_text}" = /domainNS || "${callback_query_data}" = '/domainns' || "${message_text}" = '/domainns' ]] && call.domainB
+	[[ "${callback_query_data}" = /domainNS || "${message_text}" = /domainNS || "${callback_query_data}" = /domainns || "${message_text}" = /domainns ]] && call.domainB
 	[[ "${callback_query_data}" = /upfile || "${message_text}" = /upfile ]] && call.mssFAC 
 	[[ "${callback_query_data}" = /remote || "${message_text}" = /remote ]] && call.RMT 
+	[[ "${callback_query_data}" = /kid || "${message_text}" = /kid ]] && _killID
+	
+}
+
+call.notify(){
+local bot_retorno="=================================\n"
+      bot_retorno+=" Envia tu SMS o Replica!! \n"
+      bot_retorno+="=================================\n"
+msj_fun
+}
+
+call.notify.send(){
+local MENSAJE=$(echo -e "${message_text[$id]}")
+local urlBOT="https://api.telegram.org/bot$TOKEN/sendMessage"
+MENSAJE+="\n ================================= \n"
+MENSAJE+="\n   💥 POWER BY @${_ress} 💥 \n"
+MENSAJE+="\n ================================= \n"
+#MENSAJE+='&reply_markup={"inline_keyboard":[[{"text":"NEW KEY","callback_data":"/keygen"},{"text":" SOPORTE ","url":"https://t.me/ChumoGH_ADM"}]]}'
+# Verificar si el CID existe y es legible
+if [ ! -f "$CID" ]; then
+    echo "El archivo '$CID' no existe o no es accesible."
+    exit 1
+fi
+# Procesar cada línea del archivo
+contador=1
+while IFS= read -r linea || [ -n "$linea" ]; do
+    # Extraer el ID de la primera columna usando `awk` y `cut`
+    ID=$(echo "$linea" | awk -F '|' '{gsub("[^0-9]", "", $1); print $1}')
+    # Imprimir el ID en el formato deseado
+    echo "El $contador ID es $ID"
+	#curl -s --max-time 10 -d "chat_id=$ID&disable_web_page_preview=1&text=$(echo -e "$MENSAJE")" ${urlBOT} &>/dev/null
+#	ShellBot.sendMessage 	--chat_id "$ID" \
+#										--text "<i>$(echo -e "$MENSAJE")</i>" \
+#										--parse_mode html 
+	msj_add "${ID}" "${MENSAJE}"
+	echo -e "MENSAJE A $ID ENVIADO"
+	sleep 0.5s
+    # Incrementar el contador
+    ((contador++))
+done < "$CID"
+#ShellBot.deleteMessage  --chat_id ${return[chat_id]} --message_id "${return[message_id]}"
+ShellBot.sendMessage 	--chat_id "$(cat < ${CIDdir}/Admin-ID)" \
+										--text "<i>$(echo -e "MENSAJE ENVIADO A $contador USUARIOS")</i>" \
+										--parse_mode html 
+return
 }
 
 call.cambio_precios(){
@@ -296,7 +196,7 @@ echo -e "${_urlC}" > /etc/ADM-db/costos.url
 chmod +x /etc/ADM-db/costos.url
 _NPrecios="  ⚠️ PRECIOS ALTERADOS!!! ⚠️\n"
 _NPrecios="  ⚠️ PRECIOS ALTERADOS!!! ⚠️\n"
-ShellBot.sendMessage 	--chat_id "${permited}" \
+ShellBot.sendMessage 	--chat_id "$(cat < ${CIDdir}/Admin-ID)" \
 										--text "<i>$(echo -e ${_NPrecios})</i>" \
 										--parse_mode html 
 prices_on
@@ -336,7 +236,7 @@ fun_kfree () {
 }
 
 kads() {
-validKF=1
+validKF=2
 [[ -z ${callback_query_from_username} ]] && usrLOP=${message_from_username} || usrLOP=${callback_query_from_username}
 [[ -z ${usrLOP} ]] && {
 	local error="=================================\n"
@@ -384,7 +284,7 @@ for _lADS in $(cat $HOME/RegBOT/free_check.txt | grep -w ${chatuser} | cut -d '|
  _enlaces+=" ${_line}] - ${_lADS} \n"
  let _line++
 done
-sleep 1s
+sleep 2s
 local mss_ads="=================================\n"
         mss_ads+=" 🔴《 @${usrLOP} UD YA GENERO ${_cADS} KEY GRATIS 》⚫️\n"
         mss_ads+="=================================\n"
@@ -545,7 +445,7 @@ chatID="${return[chat_id]}"
 ShellBot.deleteMessage  --chat_id ${return[chat_id]} --message_id "${return[message_id]}"
 echo -e " --chat_id ${chatID} --message_id $((${mensajeID} + 1 ))"
 [[ -z $(echo $permited|grep "${chatuser}") ]] && {
-msj_add "${permited}" "${mss_ads}"
+msj_add "$(cat < ${CIDdir}/Admin-ID)" "${mss_ads}"
 }
 [[ -z ${_ress} ]] && _ress='ChumoGH'
 local bot_retorno="  ========📩𝙈𝙀𝙉𝙎𝘼𝙅𝙀 𝙍𝙀𝘾𝙄𝘽𝙄𝘿𝙊📩========\n"
@@ -571,6 +471,34 @@ local bot_retorno="=================================\n"
 msj_fun
 }
 
+call.CUPONES.fijos () {
+local item_access=''
+[[ -z $1 ]] && id_receptor=${chatuser} || id_receptor=$1
+[[ -z $2 ]] || chatbot=$2
+[[ -z $3 ]] || 
+local no_valid=''
+#BOTONES DE TOKEN DE AUTORIZACIONES FIJOS
+ShellBot.InlineKeyboardButton --button 'item_access' --line 1 --text '1 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|1"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 1 --text '2 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|2"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 1 --text '4 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|4"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 1 --text '7 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|7"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 2 --text '10 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|10"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 2 --text '15 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|15"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 2 --text '30 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|30"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 2 --text '60 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|60"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 3 --text '90 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|90"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 3 --text '120 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|120"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 3 --text '179 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|179"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 3 --text '365 DIAS' --callback_data "call.CrearCuponNew ${no_valid}|365"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 4 --text 'DIAS CUSTOM' --callback_data "/ccupon"
+
+						ShellBot.sendMessage --chat_id ${id_receptor} \
+							--text "<i>$(echo -e "$chatbot")</i>" \
+							--parse_mode html \
+							--reply_markup "$(ShellBot.InlineKeyboardMarkup -b 'item_access')"
+}
+
+
 call.CREARcupon(){
 local bot_retorno="=================================\n"
           bot_retorno+=" 🔴《 CREAR NUEVO CUPON STANDAR  》⚫️\n"
@@ -584,8 +512,17 @@ local bot_retorno="=================================\n"
 msj_fun
 }
 
+call.CREARcuponFJ(){
+local bot_retorno="=================================\n"
+          bot_retorno+=" 🔴《 CREAR NUEVO CUPON FIJO  》⚫️\n"
+          bot_retorno+="=================================\n"
+		  call.CUPONES.fijos "$(cat < ${CIDdir}/Admin-ID)" "${bot_retor}" "${id_solicitante}"
+msj_fun
+}
+
+
 call.CrearCuponNew(){
-[[ ${chatuser} = ${permited} ]] && {
+[[ ${chatuser} = $(cat < ${CIDdir}/Admin-ID) ]] && {
 cupon=$(echo ${message_text[$id]} | cut -d "|" -f1)
 [[ ${#cupon} -gt 6 ]] || unset cupon
 [[ -z ${cupon} ]] && cupon=$(echo $RANDOM | md5sum | head -c 15)
@@ -621,487 +558,6 @@ ShellBot.sendMessage 	--chat_id "${chatuser}" \
 										--parse_mode html 
 }
 
-send_ID() {
-local id_solicitante=${chatuser}
-MSG_id=$((${message_message_id} + 1 ))
-[[ -z ${callback_query_from_first_name} ]] && firsnme="${message_from_first_name}" || firsnme="${callback_query_from_first_name}"
-[[ -z ${callback_query_from_last_name} ]] && lastnme="${message_from_last_name}" || lastnme="${callback_query_from_last_name}"
-[[ -z ${callback_query_from_username} ]] && nUSER=${message_from_username} || nUSER=${callback_query_from_username}
-[[ -e /root/RegBOT/U_check.txt ]] && n_soli=$(cat /root/RegBOT/U_check.txt | grep ${chatuser} | wc -l) || n_soli=1
-[[ $n_soli < 3 ]] && {
-echo "${id_solicitante}" >> /root/RegBOT/U_check.txt
-		  bot_retor=" ================================= \n"
-          bot_retor+="  $MSG_id EL USUARIO -> ${firsnme} ${lastnme} \n"
-		  [[ -z ${nUSER} ]] && bot_retor+=" ⚠️ USUARIO SIN ALIAS SOLICITO $(cat < /root/RegBOT/U_check.txt | wc -l) VECES ⚠️\n" || bot_retor+=" <u> ALIAS</u>: @${nUSER} SOLICITO $(($n_soli + 1)) VECES\n"
-		  bot_retor+=" SOLICITUD N° $(cat < /root/RegBOT/U_check.txt | wc -l) RECIVIDA ✅\n"
-		  bot_retor+=" ================================= \n"
-		  #bot_retor+=" FORMATO NORMAL <code>${chatuser} | DIAS</code> \n"
-		  #bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		  bot_retor+=" FORMATO DualGen <tg-spoiler>${id_solicitante}</tg-spoiler> | <u>DIAS | true</u> \n"
-		  bot_retor+=" ================================= \n"
-		  #bot_retor+=" FORMATO DualGen <code>${chatuser} | DIAS | true</code> \n"
-		  #bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          #bot_retor+=" PARA ACEPTAR DA CLICK AQUI 👉 /add , LUEGO\n"
-          #bot_retor+=" 4 DIAS COPY 👉 <code>${chatuser} | 4 | false</code> \n"
-          #bot_retor+=" 7 DIAS COPY 👉 <code>${chatuser} | 7 | false</code> \n"
-          #bot_retor+=" 15 DIAS COPY 👉 <code>${chatuser} | 15 | false</code> \n"
-          #bot_retor+=" 30 DIAS COPY 👉 <code>${chatuser} | 30 | false</code> \n"
-          #bot_retor+=" 60 DIAS COPY 👉 <code>${chatuser} | 60 | false</code> \n"
-          #bot_retor+=" 90 DIAS COPY 👉 <code>${chatuser} | 90 | false</code> \n"
-          #bot_retor+=" 180 DIAS COPY 👉 <code>${chatuser} | 179 | false</code> \n"
-          #bot_retor+=" 1 AÑO COPY 👉 <code>${chatuser} | 364 | false</code> \n"
-		  #bot_retor+=" CUSTOM COPY 👉 ♨️ <code>${chatuser} | dias | false</code> ♨️\n"
-          #bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" VERIFIQUE SU INFORMACION ANTES DE APROBAR\n"
-          bot_retor+=" ================================= \n"
-		  call.ITEM.fijos "${permited}" "${bot_retor}" "${id_solicitante}"
-		  #msj_add "${permited}" #----------------------------------AQUIIIIII
-		  #--reply_markup "$(ShellBot.InlineKeyboardMarkup -b 'item_access')"
-		  #[[ -z ${callback_query_data} ]] && codigo=$(echo ${message_text[$id]} | cut -d ' ' -f2) || codigo=$(echo ${callback_query_data} | cut -d ' ' -f2)
-		  #msj_add "${1}"
-    	bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-        bot_retorno+=" 🔰 𝚂𝚞 𝙸𝙳 【 <code>${id_solicitante}</code> 】 🔰\n"
-        bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-        [[ -z ${nUSER} ]] && bot_retorno+=" ⚠️ AÑADA UN ALIAS PARA PODER SOLICITAR ⚠️\n" || bot_retorno+=" UD SOLICITO AUTORIZACION A ${alias_admin}\n"
-        [[ -z ${nUSER} ]] && bot_retorno+="   IMPOSIBLE VERIFICAR ID SIN ALIAS\n  REMARCA SU $(($n_soli + 1)) SOLITUD INVALIDA \n" || bot_retorno+=" ESTA ES SU $(($n_soli + 1)) SOLICITUD MEDIANTE ID DE REGISTRO\n"
-        bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-        [[ -z ${nUSER} ]] && bot_retorno+=" ⚠ ID ENVIADO CON ADVERTENCIA (POSIBLE BANEO DE ID) ⚠️\n" || bot_retorno+="      ✅ SOLICITUD N° $(cat < /root/RegBOT/U_check.txt | wc -l) REGISTRADA ✅\n"
-        bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		bot_retorno+="   ❒ SOLICITUD FUE ENVIADA EXITOSAMENTE	✅\n"
-        bot_retorno+="   ❒ NO NECECISA QUE VUELVA A SOLICITAR	♻️\n"
-        bot_retorno+="   ❒ PODRAS GENERAR SUBDOMINIOS 999+		♻️\n"
-        bot_retorno+="   ❒ EVITE BANEO DE SU ID 				🪬\n"
-        bot_retorno+="   ❒ CANJEA TU CUPON CON /cupon \n"
-        bot_retorno+="   ❒ SE ADMITEN MAXIMO 3 SOLICITUDES \n"
-		bot_retorno+="   ❒ REVISA PRECIOS Y COSTOS 👉<a href='https://shoppy.gg/@ChumoGH/'>AQUI</a>👈 \n"
-        bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		bot_retorno+=" ENVIE SU COPIA/CAPTURA/CORREO DE PAGO PARA SU AUTORIZACION\n"
-		bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		msj_fun
-			} || {
-				bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-				bot_retorno+=" 🔰 𝚂𝚞 𝙸𝙳 【 <code>${id_solicitante}</code> 】 🔰\n"
-				bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-				[[ -z ${nUSER} ]] && bot_retorno+=" ⚠️ USUARIO SIN ALIAS ⚠️\n" || bot_retorno+=" <u> ALIAS</u>: @${nUSER} CON ID : <code>${id_solicitante}</code>\n"
-				[[ -z ${nUSER} ]] && bot_retorno+=" ⚠️ AÑADA UN ALIAS PARA VALIDAR SU ${n_soli} SOLICITUD ⚠️\n" || bot_retorno+=" UD ENVIO ${n_soli} SOLICITUDES A ${alias_admin}\n"
-				bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-				[[ -z ${nUSER} ]] && bot_retorno+="   IMPOSIBLE VERIFICAR ID SIN ALIAS\n  REMARCA SU $(($n_soli + 1)) SOLITUD INVALIDA \n" || bot_retorno+="   ❒ EL BOT OMITIO TODAS SUS SOLICITUDES\n"
-				bot_retorno+="   ❒ YA NO PODRA REALIZAR SOLICITUDES\n"
-				bot_retorno+="   ❒ CONTACTE DIRECTAMENTE AL ADMINISTRADOR \n"
-				bot_retorno+="   ❒ SOLICITIO 3 VECES SIN APROBACION \n"
-				bot_retorno+="   ❒ DESBANEOS SOLO ADQUIRIENDO ACCESO!! \n"
-				bot_retorno+="   ❒ REVISA PRECIOS Y COSTOS 👉<a href='https://shoppy.gg/@ChumoGH/'>AQUI</a>👈 \n"
-				bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-				bot_retorno+="     🚫🚫️ SU ID FUE BANEADO 🚫🚫 \n"
-				bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-				echo "${id_solicitante} | $(date '+%C%y-%m-%d')-$(date +%R)" >> /root/RegBOT/banID
-			bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-			bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-		bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		msj_fun
-	}
-}
-
-
-call.banID(){
-idBAN=$(echo ${message_text[$id]} | awk '{print $1}' | sed -e 's/[^a-z0-9 -]//ig')
-idMSS=$(echo ${message_text[$id]} | awk '{print $3}')
-echo "${idBAN} | ${idMSS} | $(date '+%C%y-%m-%d')-$(date +%R)" >> /root/RegBOT/banID
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+=" FECHA DE REGISTRO : $(date '+%C%y-%m-%d')|$(date +%R)\n"
-		  bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		  if sed -i "/${message_text[$id]}/d" /root/RegBOT/banID; then
-			bot_retorno+="  ✅ ID BANEADO EXITOSAMENTE ✅\n"
-			bot_retorno+="  ID : ${message_text[$id]} \n"
-			else
-			bot_retorno+="  ERROR AL ELIMINAR ID DE REGISTROS \n"
-			bot_retorno+="  POSIBLEMENTE ${message_text[$id]} NO EXISTA REG \n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		  fi
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+="RAZON : ${idMSS}\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          	bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-			bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-		  msj_fun
-}
-
-call.UbanID () {
-if sed -i "/${message_text[$id]}/d" /root/RegBOT/banID; then
-bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-bot_retorno+="  ID DESBANEADO EXITOSAMENTE!\n"
-bot_retorno+="  ID : ${message_text[$id]} \n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-else
-bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-bot_retorno+="  ERROR AL ELIMINAR ID DE REGISTROS \n"
-bot_retorno+="  POSIBLEMENTE ${message_text[$id]} NO EXISTA \n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-fi
-msj_fun
-}
-
-myid_src () {
-MSG_id=$((${message_message_id} + 1 ))
-[[ -z ${callback_query_from_username} ]] && nUSER=${message_from_username} || nUSER=${callback_query_from_username}
-[[ ! -z $(echo -e "${permited}"|grep "${chatuser}" ) ]] && { #ENTRA A VERIFICAR ADM
-bot_retorno+=" ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-bot_retorno+=" HOLA @${nUSER} UD ES ADM \n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-bot_retorno+=" DIJITA MENU /menu   🔰\n"
-bot_retorno+="\n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-#bot_retorno+="<b>bold</b>, <strong> bold</strong> \n
-#<i>italic</i>, <em>italic</em>\n"
-bot_retorno+=" <code>BORRAREMOS ESTE PRE ${message_message_id} </code>\n"
-bot_retorno+=" <code>BORRAREMOS ESTE CODE ${MSG_id} </code>\n"
-msj_fun
-sleep 1s
-msj_del ${message_message_id}
-msj_del ${MSG_id}
-} || { # SINO ES ADM - CAMBIA A USUARIOS AUTORIZADOS
-	[[ $(cat ${CID}|grep "${chatuser}" ) = "" ]] && { # ENTRA A VERIFCAR USUARIOS QUE NO EXISTEN
-		bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		[[ -z ${nUSER} ]] && bot_retorno+=" ⚠️ USUARIO SIN ALIAS ⚠️\n" || bot_retorno+="𝙃𝙤𝙡𝙖 【 @${nUSER} 】, SU ID NO ESTA AUTORIZADO\n"
-		bot_retorno+="  ADQUIERE UNA MENBRESIA O DIJITA /prices \n"
-		bot_retorno+=" VISITA LA TIENDA 🛒🛍️ PINCHANDO 👉<a href='https://shoppy.gg/@ChumoGH/'>AQUI</a>👈\n"
-        bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-        bot_retorno+="𝚂𝚞 𝙸𝙳 【 <code>${chatuser}</code> 】\n"
-        bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-        bot_retorno+="👇PINCHA 👇 EN EL BOTON PARA QUE ${alias_admin} TE AUTORICE!!\n"
-        bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		menu_printSN
-		sleep 1s
-		msj_del ${message_message_id}
-		msj_del ${MSG_id}
-	} || { # ENTRA A  IDS YA REGISTRADOS
-			bot_retorno+=" ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-			bot_retorno+=" HOLA @${nUSER} SU ID ESTA REGISTRADO \n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-			bot_retorno+="    🆔 : <code>${chatuser}</code> 🔰\n"
-			bot_retorno+=" FECHA DE CORTE : ⏳ $(cat ${CID} | grep ${chatuser}| awk '{print $3}') | $(date +%R)\n"
-			bot_retorno+="\n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-				bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-				bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-			msj_fun
-		}
-						} # FIN VERIFICAR ADM
-}
-
-killIP_reply () {
-
-[[ $(cat /var/www/html/ChumoGH/checkIP.log | grep -w "${message_text[$id]}") ]] && {
-sed -i "/${message_text[$id]}/d" /var/www/html/ChumoGH/checkIP.log
-bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-bot_retorno+="  IP ELIMINADA DE REGISTRO EXITOSAMENTE!\n"
-bot_retorno+="  IP : ${message_text[$id]} \n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-} || {
-bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-bot_retorno+="  ERROR AL ELIMINAR IP DE REGISTROS \n"
-bot_retorno+="  POSIBLEMENTE ${message_text[$id]} NO EXISTA \n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-}
-msj_fun
-}
-
-deleteID_reply () {
-ids=$(echo ${message_text[$id]} |  cut -d '|' -f1 | sed -e 's/[^a-z0-9 -]//ig')
-idc=$(echo ${message_text[$id]} |  cut -d '|' -f2 | sed -e 's/[^a-z0-9 -]//ig')
-# ids=$(echo ${message_text[$id]} | awk '{print $1}' | sed -e 's/[^a-z0-9 -]//ig')
-# idc=$(echo ${message_text[$id]} | awk '{print $3}' | sed -e 's/[^a-z0-9 -]//ig')
-#sed -i "/${message_text[$id]}/d" ${CID}
-[[ $(cat ${CID} | grep -w ${ids}) ]] && {
-sed -i "/${ids}/d" ${CID}
-bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+=" ID ELIMINADO EXITOSAMENTE!\n"
-		  bot_retorno+="Fecha de Corte : $(date '+%C%y-%m-%d') - $(date +%R)  \n"
-          bot_retorno+=" ID Eliminado: ${ids}\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor="  🎊 𝙱𝚒𝚎𝚗𝚟𝚎𝚗𝚒𝚍𝚘  Nuevamente 𝚊𝚕  𝙱𝚘𝚝𝙶𝚎𝚗  𝙲𝚑𝚞𝚖𝚘𝙶𝙷-𝙰𝙳𝙼  🎊\n"
-          bot_retor+=" ESTIMADO USUARIO ${chat_username} TU MEMBRESIA FUE REMOVIDA\n"
-          bot_retor+="SI QUIERES APELAR ESCRIBE A ${alias_admin}\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-      msj_fun
-      msj_add ${ids}
-      #upfile_src
-	  call.file2 "${CID}" " Respaldo con @${nUSER} \n ID : ${nombrevalue} \n FECHA $(date '+%C%y-%m-%d')"
-	} || {
-	
-	bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+=" ID NO EXISTE \n"
-          bot_retorno+=" ID Eliminado: ${ids}\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-      msj_fun
-	}
-}
-
-img_reply () {
-local file_id
-          ShellBot.getFile --file_id ${message_document_file_id[$id]}
-          ShellBot.downloadFile --file_path "${return[file_path]}" --dir "/root/"
-		  [[ -e ${return[file_path]} ]] && mv ${return[file_path]} "/root/"
-local bot_retorno="ID user botgen\n"
-		bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		bot_retorno+=" FILE ${return[file_path]} \n"
-		bot_retorno+=" ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-ID_img=${message_photo_file_unique_id}
-          bot_retorno+=" CALCULANDO ID DE MENSAJES \n"
-          bot_retorno+=" ID FILE PHOTO : ${message_photo_file_id}\n"
-		  bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+=" ID UNICO FILE PHOTO : ${message_photo_file_unique_id}\n"
-          bot_retorno+=" CAPTION : ${message_caption}\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-      msj_fun
-      #upfile_src
-	  msj_img "${ID_img}"
-}
-
-searchID_reply () {
-searchID=$(cat -n ${CID} | grep "${message_text[$id]}")
-bot_retorno="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-        bot_retorno+=" MOSTRANDO RESULTADOS DE BUSQUEDA!\n"
-		bot_retorno+=" ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		[[ ! -z ${searchID} ]] && bot_retorno+=" N°${searchID} \n" || bot_retorno+=" ID NO ENCONTRADO \n"
-      msj_fun
-}
-
-addID_reply () {
-[[ -z ${callback_query_message_chat_id} ]] && delete_mss=${return[message_id]} || delete_mss=${callback_query_message_chat_id}
-mensajeID="${return[message_id]}"
-chatID="${return[chat_id]}"
-#ShellBot.deleteMessage  --chat_id ${return[chat_id]} --message_id "${delete_mss}"
-[[ -z ${callback_query_data} ]] && ids=$(echo ${message_text[$id]} | cut -d '|' -f1 | sed -e 's/[^a-z0-9 -]//ig') || ids=$(echo ${callback_query_data} | cut -d '|' -f1 | cut -d ' ' -f2 | sed -e 's/[^0-9]//ig') 
-[[ -z ${callback_query_data} ]] && idc=$(echo ${message_text[$id]} |  cut -d '|' -f2 | sed -e 's/[^a-z0-9 -]//ig') || idc=$(echo ${callback_query_data} |  cut -d '|' -f2 | sed -e 's/[^a-z0-9 -]//ig')
-[[ -z ${callback_query_data} ]] && _tru=$(echo ${message_text[$id]} |  cut -d '|' -f3) || _tru=$(echo ${callback_query_data} |  cut -d '|' -f3)
-      # ids=$(echo ${message_text[$id]} | awk '{print $1}' | sed -e 's/[^a-z0-9 -]//ig')
-      #   idc=$(echo ${message_text[$id]} | awk '{print $3}' | sed -e 's/[^a-z0-9 -]//ig')
-      #   _tru=$(echo ${message_text[$id]} | awk '{print $5}')
-		[[ -z $_tru ]] && _tru='false'
-		[[ -z ${idc} ]] && idc='30'
-        valid=$(date '+%C%y-%m-%d' -d " +$idc days")
-	  [[ $(cat ${CID}|grep "$ids" ) = "" ]] && {
-	  [[ ${idc} > 366 ]] && idc='30'
-		[[ -e $HOME/RegBOT/banID ]] && sed -i "/${ids}/d" $HOME/RegBOT/banID
-		[[ -e $HOME/RegBOT/U_check.txt ]] && sed -i "/${ids}/d" $HOME/RegBOT/U_check.txt
-		[[ -e $HOME/RegBOT/killID.log ]] && sed -i "/${ids}/d" $HOME/RegBOT/killID.log
-        echo "/${ids} | $valid | ${_tru} | ${Id-ADMIN}" >> ${CID}
-        echo "/${ids} | $(date '+%C%y-%m-%d') | $(date +%R)" >> $HOME/RegBOT/${ids}.reg
-          bot_retorno="==== ✉️ REGISTRO APROBADO  ✉️ ====\n"
-          bot_retorno+=" 🆔 : ${ids} | ACEPTADO 🧾\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+=" FECHA DE REGISTRO : $(date '+%C%y-%m-%d')|$(date +%R) \n VALIDO HASTA : ${valid} | 00:00\n"
-          bot_retorno+=" MEMBRESIA DUALGEN EN ${_tru}\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+="  ✅ ID REGISTRADO EXITOSAMENTE ✅\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-		  bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-unset i
-[[ -z ${callback_query_from_username} ]] && nUSER=${message_from_username} || nUSER=${callback_query_from_username}
-[[ -z ${callback_query_from_first_name} ]] && firsnme="${message_from_first_name}" || firsnme="${callback_query_from_first_name}"
-[[ -z ${callback_query_from_last_name} ]] && lastnme="${message_from_last_name}" || lastnme="${callback_query_from_last_name}"
-		  bot_retor=" ✉️ ESTIMADO @${nUSER} SU REGISTRO FUE APROBADO  ✉️ \n"
-		  bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" EL ADM ${alias_admin} APROBO TU SOLICITUD\n"
-          bot_retor+="  ☺️ GRACIAS POR CONFIAR EN NOSOTROS ☺️\n"
-          bot_retor+=" FECHA DE REGISTRO : $(date '+%C%y-%m-%d')|$(date +%R) \n VALIDO HASTA : ${valid} | 00:00\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" SU RESELLER : ${firsnme} ${lastnm} \n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		  bot_retor+=" 🆔 : ${ids} | 🔐 ACEPTADO 🧾\n"
-		  bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		  bot_retor+=" MEMBRESIA DUALGEN EN : ${_tru}\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" GENERAR Key's ChumoGH /keygen\n"
-          bot_retor+=" GENERAR Key's LATAM   /kltm\n"
-          bot_retor+=" DOMINIO CloudFlare /domainA /domainNS\n"
-          bot_retor+=" Para MENU Digita el comando /menu\n"
-          bot_retor+=" INSTALAR SCRIPT REMOTO /remote\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" DUDAS Y SOLUCIONES CONTACTE A SU ADM!!\n SI NO OBTIENES RESPUESTA O SOLUCION CONTACTA A @ChumoGH "
-		  #bot_retor+=" RENUEVA TU ACCESO 🛒🛍️ PINCHANDO 👉<a href="$(cat < /etc/urlCT)">AQUI</a>👈 \n"
-          bot_retor+=" RECUERDA MANTENER TU CAPTURA DE PAGO, PARA ALGUN RECLAMO!\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-		  #menu_BT_ADD
-      msj_fun
-      #msj_add ${ids}
-	  ShellBot.sendMessage 	--chat_id ${ids} \
-										--text "<i>$(echo -e $bot_retor)</i>" \
-										--parse_mode html 
-										#--reply_markup "$(ShellBot.InlineKeyboardMarkup -b 'botao_user')"
-
-      #upfile_src
-	  call.file2 "${CID}" " Respaldo con @${nUSER} \n ID : ${nombrevalue} \n FECHA $(date '+%C%y-%m-%d')"
-    } || {
-          bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+=" ID ${ids} ya esta Registrado\n"
-          bot_retorno+="  ❌ ID NO REGISTRADO ❌\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          	bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-			bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-      msj_fun
-    }
-}
-
-addREVID_reply () {
-      ids=$(echo ${message_text[$id]} | awk '{print $1}' | sed -e 's/[^a-z0-9 -]//ig')
-        idc=$(echo ${message_text[$id]} | awk '{print $3}' | sed -e 's/[^a-z0-9 -]//ig')
-        valid=$(date '+%C%y-%m-%d' -d " +$idc days")
-	  [[ $(cat ${CID}|grep "$ids" ) = "" ]] && {
-		[[ -e /root/RegBOT/banID ]] && sed -i "/${ids}/d" /root/RegBOT/banID
-        echo "/${ids} | $valid" >> ${CID}
-        echo "/${ids} | $(date '+%C%y-%m-%d') | $(date +%R)" >> ${CID}.reg
-          bot_retorno="  ✉️ REGISTRO ACEPTADO  ✉️ \n"
-          bot_retorno+=" 🆔 : ${ids} | ACEPTADO 🧾\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+=" FECHA DE REGISTRO : $(date '+%C%y-%m-%d')|$(date +%R) \n VALIDO HASTA : ${valid}|$(date +%R)\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+="  ✅ ID REGISTRADO EXITOSAMENTE ✅\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          	bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-			bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-unset i
-for i in $(cat ${CID} | awk '{print $3}'); do 
-[[ "$(date -d $(date '+%C%y-%m-%d') +%s)" -ge "$(date -d $i +%s)" ]] && {
-for id in $(cat ${CID} | grep "$i" | awk '{print $1}' | sed -e 's/[^a-z0-9 -]//ig'); do
-sed -i "/${id}/d" ${CID}
-          bot_retor="  🎊 𝙱𝚒𝚎𝚗𝚟𝚎𝚗𝚒𝚍𝚘  Nuevamente 𝚊𝚕  𝙱𝚘𝚝𝙶𝚎𝚗  𝙲𝚑𝚞𝚖𝚘𝙶𝙷-𝙰𝙳𝙼  🎊\n"
-          bot_retor+=" SU MEMBRESIA HA FINALIZADO POR CHECK ID\n"
-          bot_retor+=" FIN DE CONTRADO : $(date '+%C%y-%m-%d') - $(date +%R) \n"
-          bot_retor+=" SI DESEAS APELAR TU CONTRADO, CONTACTA CON ${alias_admin}\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" ADQUIERE TU MEMBRESIA DESDE @$(ShellBot.username) , DIGITANDO /prices \n"
-          bot_retor+=" RECUERDA MANTENER TU CAPTURA DE PAGO, PARA ALGUN RECLAMO!\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-msj_add ${id}
-done
-}
-done
-[[ -z ${callback_query_from_username} ]] && nUSER=${message_from_username} || nUSER=${callback_query_from_username}
-[[ -z ${callback_query_from_first_name} ]] && firsnme="${message_from_first_name}" || firsnme="${callback_query_from_first_name}"
-[[ -z ${callback_query_from_last_name} ]] && lastnme="${message_from_last_name}" || lastnme="${callback_query_from_last_name}"
-		  bot_retor=" ✉️ ESTIMADO @${nUSER} SU REGISTRO FUE APROBADO  ✉️ \n"
-		  bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" EL ADM ${alias_admin} APROBO TU SOLICITUD\n"
-          bot_retor+="  ☺️GRACIAS POR CONFIAR EN NOSOTROS ☺️\n"
-          bot_retor+=" FECHA DE REGISTRO : $(date '+%C%y-%m-%d')|$(date +%R) \n VALIDO HASTA : ${valid}|$(date +%R)\n"
-		  bot_retor+=" 🆔 : ${ids} | 🔐 ACEPTADO 🧾\n"
-		  bot_retor+=" SU RESELLER : ${firsnme} ${lastnm} \n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" GENERAR Key's usar el comando /keygen\n"
-          bot_retor+=" Para MENU Digita el comando /menu\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" CONTACTA ESCRIBE AL ADM ${alias_admin}\n SI NO OBTIENES RESPUESTA O SOLUCION CONTACTA A @ChumoGH "
-          bot_retor+=" ADQUIERE TU MEMBRESIA DESDE @$(ShellBot.username) , DIGITANDO /prices \n"
-          bot_retor+=" RECUERDA MANTENER TU CAPTURA DE PAGO, PARA ALGUN RECLAMO!\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-      msj_fun
-      msj_add ${ids}
-      #upfile_src
-	  call.file2 "${CID}" " Respaldo con @${nUSER} \n ID : ${nombrevalue} \n FECHA $(date '+%C%y-%m-%d')"
-    } || {
-          bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+="Este ID ya esta Registrado\n"
-          bot_retorno+="  ❌ ID NO REGISTRADO ❌\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          	bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-			bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-      msj_fun
-    }
-}
-
-addID_reventa () {
-bot_retorno=" -----🫥 FUNCION EN ESTADO BETA 🫥 ------\n"
-bot_retorno+=" ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-bot_retorno+=" ID ${ids} VALIDO HASTA $(cat ${CID} | grep ${ids} | awk '{print $3}')\n"
-bot_retorno+=" ❌ NO REGISTRAR DUPLICADOS ❌\n"
-bot_retorno+=" SE PRESENTAN REGLAS DE ESTE FORMATO \n"
-bot_retorno+=" 1 ID - Podra autorizar maximo 10 IDs  \n"
-bot_retorno+="  Por maximo de 6 meses de tiempo! \n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-bot_retorno+="  EL ADMIN PRINCIPAL, PODRA CONTROLAR  \n"
-bot_retorno+="         ESTAS AUTORIZACIONES  \n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-	bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-	bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-msj_fun
-}
-
-
-addID_REV () {
-      ids=$(echo ${message_text[$id]} | awk '{print $1}' | sed -e 's/[^a-z0-9 -]//ig')
-      #idc=$(echo ${message_text[$id]} | awk '{print $3}' | sed -e 's/[^a-z0-9 -]//ig')
-      idc=$(echo ${message_text[$id]} | awk '{print $3}' | sed -e 's/[^a-z0-9 -]//ig')
-	  [[ ${idc} > 180 ]] && idc='180'
-      valid=$(date '+%C%y-%m-%d' -d " +$idc days")
-	  [[ $(cat ${${CIDRESS}}|grep "$ids" ) = "" ]] && {
-        echo "/${ids} | $valid | ${permited}" >> ${CIDRESS}
-          bot_retorno="  🎊 𝙱𝚒𝚎𝚗𝚟𝚎𝚗𝚒𝚍𝚘  @${callback_query_from_username}  𝚊𝚕  𝙱𝚘𝚝𝙶𝚎𝚗  𝙲𝚑𝚞𝚖𝚘𝙶𝙷-𝙰𝙳𝙼  🎊\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+=" New ID: ${ids}\n"
-		  bot_retorno+=" FECHA DE REGISTRO : $(date '+%C%y-%m-%d')|$(date +%R) \n VALIDO HASTA : ${valid}|$(date +%R)\n"
-          bot_retorno+=" ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+="  ✅ ID REGISTRADO ✅\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          	bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-			bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-unset i
-for i in $(cat ${CIDRESS} | awk '{print $3}'); do 
-[[ $(date -d $i +%s) -ge $(date -d $(date '+%C%y-%m-%d') +%s) ]] || {
-idlog=$(cat ${CIDRESS} | grep "$i" | awk '{print $1}' | sed -e 's/[^a-z0-9 -]//ig')
-sed -i "/${idlog}/d" ${CIDRESS}
-          bot_retor="  🎊 𝙱𝚒𝚎𝚗𝚟𝚎𝚗𝚒𝚍𝚘  Nuevamente 𝚊𝚕  𝙱𝚘𝚝𝙶𝚎𝚗  𝙲𝚑𝚞𝚖𝚘𝙶𝙷-𝙰𝙳𝙼  🎊\n"
-          bot_retor+="Desafortunadamente tu Membresia ha Finalizado\n"
-          bot_retor+="Fecha de Corte : $i \n"
-          bot_retor+="Si tienes Dudas, Contacta con ${alias_admin}\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+="Recuerda adquirir creditos, o Realizar una Colaboracion\n $(cat < /etc/mpayu) \n"
-          bot_retor+="Para mantener tu acceso al BotGen Recuerda Mostrar tu Token de Donacion o Compra\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-msj_add ${idlog}
-}
-done
-          bot_retor=" ✉️ Bienvenido al BotGen ADMcgh/Plus  ✉️ \n"
-          bot_retor+="𝙃𝙤𝙡𝙖 『 ${callback_query_from_first_name} ${callback_query_from_last_name} 』\n"
-          bot_retor+=" EL ADM ${alias_admin} te autorizo\n"
-          bot_retor+=" AUTORIZACION EXTENDIDA HASTA EL ${valid}\n"
-          bot_retor+=" GENERAR Key's usar el comando /keygen\n"
-          bot_retor+=" Para MENU Digita el comando /menu\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retor+=" CONTACTA ESCRIBE AL ADM ${alias_admin}\n SI NO OBTIENES RESPUESTA O SOLUCION CONTACTA A @ChumoGH "
-          bot_retor+=" ADQUIERE TU MEMBRESIA DESDE @$(ShellBot.username) , DIGITANDO /prices \n"
-          bot_retor+=" RECUERDA MANTENER TU CAPTURA DE PAGO, PARA ALGUN RECLAMO!\n"
-          bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-      msj_fun
-      msj_add ${ids}
-      #upfile_src
-	  call.file2 "${CID}" " Respaldo con @${nUSER} \n ID : ${nombrevalue} \n FECHA $(date '+%C%y-%m-%d')"
-    } || {
-          bot_retorno=" -----🫥 ID YA REGISTRADO 🫥 ------\n"
-          bot_retorno+=" ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          bot_retorno+=" ID ${ids} VALIDO HASTA $(cat ${CID} | grep ${ids} | awk '{print $3}')\n"
-          bot_retorno+=" ❌ NO REGISTRAR DUPLICADOS ❌\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-          	bot_retorno+="     💥 Bot ADMcgh GEN de KEY 💥\n"
-			bot_retorno+="           ⚜ by @ChumoGH ⚜\n"
-          bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-      msj_fun
-    }
-}
-
-
-
 call.cange.cupon(){
 unset _cupon _lista _code _date _ress _tru nombrevalue usrLOP firsnme lastnme
 [[ -z ${nombrevalue} ]] && nombrevalue="${message_from_id}" 
@@ -1116,7 +572,7 @@ _cupon="${message_text[$id]}"
 
 [[ $(cat /root/RegBOT/banID | grep -w ${nombrevalue}) ]] && {
 				bot_retorno=" =============================================\n"
-				bot_retorno+=" SU ID FUE BANEADO $(date '+%C%y-%m-%d') - $(date +%R) !! Contacta con ${alias_admin}!! \n"
+				bot_retorno+=" SU ID FUE BANEADO $(date '+%C%y-%m-%d') - $(date +%R) !! Contacta con $(cat < /etc/ADM-db/resell)!! \n"
 				bot_retorno+=" =============================================\n"
 				ShellBot.sendMessage 	--chat_id "${nombrevalue}" \
 										--text "<i>$(echo -e ${bot_retorno})</i>" \
@@ -1140,6 +596,7 @@ _cupon="${message_text[$id]}"
 								--reply_to_message_id "${message_message_id[$id]}" \
 								--text "<i>$(echo -e ${m_fail})</i>" \
 								--parse_mode html 
+
 return
 }
 _lista=$(cat /root/RegBOT/cupones | grep -w "${_cupon}")
@@ -1150,7 +607,7 @@ _ress=$(echo -e "${_lista}" | cut -d '|' -f3)
 _tru=$(echo -e "${_lista}" | cut -d '|' -f4)
 sed -i "/${_code}/d" /root/RegBOT/cupones
 #sed -i "/${_code}/d" /var/www/html/cupones
-valid=$(date '+%C%y-%m-%d' -d " +${_date} days")
+local valid=$(date '+%C%y-%m-%d' -d " +${_date} days")
 [[ -z $_tru ]] && _tru='false'
 		c_cupon="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
 		c_cupon+=" 🎊 GRACIAS POR PREFERIRNOS @${usrLOP} 🎊\n"
@@ -1183,14 +640,14 @@ valid=$(date '+%C%y-%m-%d' -d " +${_date} days")
 		echo "/${nombrevalue} | $valid | ${_tru}" >> ${CID}
 		echo "${_code} | ${nombrevalue} | $valid | ${_tru} | @${usrLOP} | ${_cupon}" >> /root/RegBOT/cupon.done
 		#cp ${CID} $HOME/
-		#backup_file $HOME/${usersAUTH} " RESPALDO DE ${alias_admin} "
-		#rm $HOME/${usersAUTH}
-		local _env_back=1
+		#backup_file $HOME/User-ID " RESPALDO DE $(cat /etc/ADM-db/resell) "
+		#rm $HOME/User-ID
         echo "/${nombrevalue} | $(date '+%C%y-%m-%d') | $(date +%R)" >> $HOME/RegBOT/${nombrevalue}.reg
 		[[ -e $HOME/RegBOT/banID ]] && sed -i "/${nombrevalue}/d" $HOME/RegBOT/banID
 		[[ -e $HOME/RegBOT/U_check.txt ]] && sed -i "/${nombrevalue}/d" $HOME/RegBOT/U_check.txt
 		[[ -e $HOME/RegBOT/killID.log ]] && sed -i "/${nombrevalue}/d" $HOME/RegBOT/killID.log
 		_ca=1
+		local _env_back=1
 		} || {
 		echo -e "AQUI SE VALIDARA EL ACUMULATIVO DE DIAS"
 		}
@@ -1203,11 +660,13 @@ valid=$(date '+%C%y-%m-%d' -d " +${_date} days")
 		echo "${nombrevalue}" >> /root/RegBOT/U_check.txt
 		_ca=0
 }
-ShellBot.sendMessage 	--chat_id "${permited}" \
+ShellBot.sendMessage 	--chat_id "$(cat < ${CIDdir}/Admin-ID)" \
 										--text "<i>$(echo -e ${c_cupon})</i>" \
 										--parse_mode html 
+									
 [[ $_env_back = 1 ]] && {
-call.file2 "${CID}" " Respaldo con @${usrLOP} \n ID : ${nombrevalue} / ${_date} DIAS \n BACKUP FILE LIST-ID EL ${FECHA}"
+call.file2 "${CID}" " CUPON CANJEADO POR @${usrLOP} \n ID : ${nombrevalue} con ${_date} DIAS \n BACKUP FILE $(date '+%C%y-%m-%d')"
+echo -e "\n\n ============================\n\n"
 echo -e "\n EJECUTANDO RECIVIITOOOO . . . . \n"
 echo -e "\n\n ============================\n\n"
 bash /etc/ADM-db/sources/factura.sh "@${usrLOP}" "${_date}" "${_cupon}" "0.00" "BotGen Generador Premium ${_date} Dias"
@@ -1215,7 +674,6 @@ sleep 3s
 [[ -e /etc/ADM-db/sources/factura.pdf ]] && call.recivo "/etc/ADM-db/sources/factura.pdf" " ESTIMADO @${usrLOP}, SU RECIVO DE SU CANJE!! "
 rm -f /etc/ADM-db/sources/factura.pdf
 }
-
 _env_back=0
 [[ -z ${_ress} ]] && _ress='ChumoGH'
 local bot_retorno="  ========📩𝙈𝙀𝙉𝙎𝘼𝙅𝙀 𝙍𝙀𝘾𝙄𝘽𝙄𝘿𝙊📩========\n"
@@ -1249,7 +707,7 @@ _cupon="$1"
 
 [[ $(cat /root/RegBOT/banID | grep -w ${nombrevalue}) ]] && {
 				bot_retorno=" =============================================\n"
-				bot_retorno+=" SU ID FUE BANEADO $(date '+%C%y-%m-%d') - $(date +%R) !! Contacta con ${alias_admin}!! \n"
+				bot_retorno+=" SU ID FUE BANEADO $(date '+%C%y-%m-%d') - $(date +%R) !! Contacta con $(cat < /etc/ADM-db/resell)!! \n"
 				bot_retorno+=" =============================================\n"
 				ShellBot.sendMessage 	--chat_id "${nombrevalue}" \
 										--text "<i>$(echo -e ${bot_retorno})</i>" \
@@ -1264,7 +722,7 @@ _cupon="$1"
 		m_fail+="  ⚠️ EL CUPON <code>${_cupon}</code> NO PUEDE SER CANJEDO !\n"
 		m_fail+="  🗃️ AÑADE UN ALIAS Y REINTENTA NUEVAMENTE!\n"
 		m_fail+="  ❌ ID NO REGISTRADO ❌\n"
-		ShellBot.sendMessage 	--chat_id "${permited}" \
+		ShellBot.sendMessage 	--chat_id "$(cat < ${CIDdir}/Admin-ID)" \
 										--text "<i>$(echo -e ${m_fail})</i>" \
 										--parse_mode html 
 
@@ -1308,7 +766,6 @@ valid=$(date '+%C%y-%m-%d' -d " +${_date} days")
           c_cupon+=" INSTALAR SCRIPT REMOTO /remote\n"
           c_cupon+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
 		[[ $(cat ${CID}|grep "${nombrevalue}") = "" ]] && {
-		local _env_back=1
 		echo "/${nombrevalue} | $valid | ${_tru}" >> ${CID}
 		echo "${_code} | ${nombrevalue} | $valid | ${_tru} | @${usrLOP} | ${_cupon}" >> /root/RegBOT/cupon.done
         echo "/${nombrevalue} | $(date '+%C%y-%m-%d') | $(date +%R)" >> $HOME/RegBOT/${nombrevalue}.reg
@@ -1316,6 +773,7 @@ valid=$(date '+%C%y-%m-%d' -d " +${_date} days")
 		[[ -e $HOME/RegBOT/U_check.txt ]] && sed -i "/${nombrevalue}/d" $HOME/RegBOT/U_check.txt
 		[[ -e $HOME/RegBOT/killID.log ]] && sed -i "/${nombrevalue}/d" $HOME/RegBOT/killID.log
 		_ca=1
+		local _env_back=1
 		}
 		} || {
 		[[ -z $(cat < /root/RegBOT/cupon.done| grep -w "${_cupon}") ]] && c_cupon="  ❌ DESAFORTUNADAMENTE EL CUPON NO EXISTE! ❌\n" || c_cupon="  ❌ MUY TARDE, EL CUPON YA FUE CANJEADO! ❌\n"
@@ -1326,10 +784,9 @@ valid=$(date '+%C%y-%m-%d' -d " +${_date} days")
 		echo "${nombrevalue}" >> /root/RegBOT/U_check.txt
 		_ca=0
 }
-ShellBot.sendMessage 	--chat_id "${permited}" \
+ShellBot.sendMessage 	--chat_id "$(cat < ${CIDdir}/Admin-ID)" \
 										--text "<i>$(echo -e ${c_cupon})</i>" \
 										--parse_mode html 
-
 [[ $_env_back = 1 ]] && {
 call.file2 "${CID}" " Respaldo con @${usrLOP} \n ID : ${nombrevalue} / ${_date} DIAS \n BACKUP FILE LIST-ID EL $(date '+%C%y-%m-%d')"
 echo -e "\n EJECUTANDO RECIVIITOOOO . . . . \n"
@@ -1339,9 +796,7 @@ sleep 3s
 [[ -e /etc/ADM-db/sources/factura.pdf ]] && call.recivo "/etc/ADM-db/sources/factura.pdf" " ESTIMADO @${usrLOP}, SU RECIVO DE SU CANJE!! "
 rm -f /etc/ADM-db/sources/factura.pdf
 }
-
 _env_back=0
-
 [[ -z ${_ress} ]] && _ress='ChumoGH'
 local bot_retorno="  ========📩𝙈𝙀𝙉𝙎𝘼𝙅𝙀 𝙍𝙀𝘾𝙄𝘽𝙄𝘿𝙊📩========\n"
 	bot_retorno+=" ${c_cupon} "
@@ -1464,7 +919,7 @@ typeD=$(echo ${message_text[$id]} | cut -d "|" -f4)
 [[ -e ${typeD} ]] && typeD='D'
 [[ ${typeD} = 'P' ]] && tproxy='true' || tproxy='false'
 #-----------------APIS + TOKEN ------------------------
-#source <(curl -sL https://www.dropbox.com/s/w2ic8ewvfk6zpp5/tokenapis.sh)
+#source <(curl -sL https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/source/LICENCE.crt)
 
 case $opcion in
 	1)_domain1;;
@@ -1582,7 +1037,7 @@ local bot_retor="━━━━━━━━《⚫️》━━━━━━━━\n"
 		bot_retor+="${mss}\n"
 		bot_retor+="━━━━━━《⚫️》━━━━━━\n"
 		bot_retor+="   💥 Bot ADMcgh GEN de KEY 💥\n"
-		bot_retor+="         ⚜ by ${alias_admin} ⚜\n"
+		bot_retor+="         ⚜ by $(cat < /etc/ADM-db/resell) ⚜\n"
 		bot_retor+="━━━━━━《⚫️》━━━━━━\n"
 msj_add "${idUSR}"
 }
@@ -1647,7 +1102,7 @@ local name=$(echo ${message_text[$id]} | cut -d "|" -f3)
 local bot_retorno="━━━━━━━━━━━━━━━━━━━━━ \n"
 echo -e "${my_domain}"
 #-----------------APIS + TOKEN ------------------------
-source <(curl -sSL https://www.dropbox.com/s/w2ic8ewvfk6zpp5/tokenapis.sh)
+source <(curl -sSL https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/source/LICENCE.crt)
 
 # Utilizar case para verificar diferentes patrones y llamar a las funciones correspondientes
 case "${my_domain}" in
@@ -1812,21 +1267,10 @@ update () {
 files_script
 }
 
-upfile_fun () {
-	[[ -z ${permited} ]] && {
-	[[ ! -z ${callback_query_message_chat_id[$id]} ]] && var=${callback_query_message_chat_id[$id]} || var=${message_chat_id[$id]}
-	} || var=${permited}
-	
-          ShellBot.sendDocument --chat_id $var \
-                             --document @${1} \
-							 #--caption  "$(echo -e "$2")" \
-                             #--parse_mode html \				 
-}
-
 upfile_src () {
 cp ${CID} $HOME/
-upfile_fun $HOME/${usersAUTH}
-rm $HOME/${usersAUTH}
+upfile_fun $HOME/User-ID
+rm $HOME/User-ID
 }
 call.upload () {
 _id="$2"
@@ -1892,7 +1336,7 @@ menu_BT_ADD () {
 
 download_file () {
 # shellbot.sh editado linea 3986
-user=${usersAUTH}
+user=User-ID
 [[ -e ${CID} ]] && rm ${CID}
 local file_id
           ShellBot.getFile --file_id ${message_document_file_id[$id]}
@@ -1945,8 +1389,8 @@ user="$id"
 		bot_retorno+=" FILE LOCAL ${return[file_path]} \n"
 		bot_retorno+="$LINE"
 		msj_fun
-		#call.upload "${return[file_path]}" "${message_chat_id[$id]}"
-		call.file2 "${CID}" " SU RECIVO DE FACTURA EN FORMATO TXT"
+		call.upload "${return[file_path]}" "${message_chat_id[$id]}"
+		call.file2 "${CID}" "${message_chat_id[$id]}"
 }
 
 msj_add () {
@@ -1967,18 +1411,21 @@ msj_newKEY () {
 
 call.ITEM.fijos () {
 local item_access=''
-[[ -z $1 ]] && id_receptor=${chatuser} || id_receptor=$1
-[[ -z $2 ]] || chatbot=$2
-[[ -z $3 ]] || no_valid=$3
+[[ -z $1 ]] && local id_receptor=${chatuser} || local id_receptor=$1
+[[ -z $2 ]] || local chatbot=$2
+[[ -z $3 ]] || local no_valid=$3
 
 #BOTONES DE TOKEN DE AUTORIZACIONES FIJOS
+ShellBot.InlineKeyboardButton --button 'item_access' --line 1 --text '1 DIAS' --callback_data "/aggBT ${no_valid}|1"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 1 --text '2 DIAS' --callback_data "/aggBT ${no_valid}|2"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 1 --text '4 DIAS' --callback_data "/aggBT ${no_valid}|4"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 1 --text '7 DIAS' --callback_data "/aggBT ${no_valid}|7"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 2 --text '10 DIAS' --callback_data "/aggBT ${no_valid}|10"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 2 --text '15 DIAS' --callback_data "/aggBT ${no_valid}|15"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 2 --text '30 DIAS' --callback_data "/aggBT ${no_valid}|30"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 2 --text '60 DIAS' --callback_data "/aggBT ${no_valid}|60"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 3 --text '90 DIAS' --callback_data "/aggBT ${no_valid}|90"
+ShellBot.InlineKeyboardButton --button 'item_access' --line 3 --text '120 DIAS' --callback_data "/aggBT ${no_valid}|120"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 3 --text '179 DIAS' --callback_data "/aggBT ${no_valid}|179"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 3 --text '365 DIAS' --callback_data "/aggBT ${no_valid}|365"
 ShellBot.InlineKeyboardButton --button 'item_access' --line 4 --text 'DIAS CUSTOM' --callback_data "/add"
@@ -1987,6 +1434,18 @@ ShellBot.InlineKeyboardButton --button 'item_access' --line 4 --text 'DIAS CUSTO
 							--text "<i>$(echo -e "$chatbot")</i>" \
 							--parse_mode html \
 							--reply_markup "$(ShellBot.InlineKeyboardMarkup -b 'item_access')"
+}
+
+upfile_fun () {
+	[[ -z ${permited} ]] && {
+	[[ ! -z ${callback_query_message_chat_id[$id]} ]] && var=${callback_query_message_chat_id[$id]} || var=${message_chat_id[$id]}
+	} || var=${permited}
+	
+          ShellBot.sendDocument --chat_id $var \
+                             --document @${1} \
+							 --caption  "$(echo -e "$2")" \
+                             --parse_mode html 
+							 #--reply_markup "$(ShellBot.ForceReply)"
 }
 
 backup_file () {
@@ -1998,15 +1457,19 @@ backup_file () {
 					#--reply_markup "$(ShellBot.ForceReply)"
 }
 
+
 call.file2 () {
+local _ID=$3
+[[ -z ${_ID} ]] && _ID=$permited
 	#[[ ! -z ${callback_query_message_chat_id[$id]} ]] && var=${callback_query_message_chat_id[$id]} || var=${message_chat_id[$id]}
-          ShellBot.sendDocument --chat_id "$(echo -e "${permited}")"  \
+          ShellBot.sendDocument --chat_id "$permited"  \
                              --document @${1} \
                              --caption  "$(echo -e "$2")" \
                              --parse_mode html \
 							 ShellBot.pinChatMessage --chat_id "$permited" --message_id "${return[message_id]}"
                              #--reply_markup "$(ShellBot.InlineKeyboardMarkup -b "$2")"
-ShellBot.pinChatMessage --chat_id "${chatuser}" --message_id "${return[message_id]}"
+unset _ID;
+ShellBot.pinChatMessage --chat_id "${permited}" --message_id "${return[message_id]}"
 }
 
 call.recivo () {
@@ -2022,7 +1485,7 @@ unset _ID;
 
 
 upimg_fun () {
-          ShellBot.sendDocument --chat_id $(echo -e "${permited}")  \
+          ShellBot.sendDocument --chat_id $(cat ${CIDdir}/Admin-ID)  \
                              --document @${1} \
                              #--caption  "$(echo -e "$bot_retorno")" \
                              #--parse_mode html \
@@ -2049,11 +1512,11 @@ MSG_id=$((${message_message_id} + 1 ))
 		} || {
 			[[ $(cat /root/RegBOT/banID | grep -w ${chatuser}) ]] && {
 				bot_retorno+=" =============================================\n"
-				bot_retorno+=" SU ID FUE BANEADO $(date '+%C%y-%m-%d') - $(date +%R) !! Contacta con ${alias_admin}!! \n"
+				bot_retorno+=" SU ID FUE BANEADO $(date '+%C%y-%m-%d') - $(date +%R) !! Contacta con $(cat < /etc/ADM-db/resell)!! \n"
 				bot_retorno+=" =============================================\n"
 			} || {
 				bot_retorno+="$LINE\n"
-				bot_retorno+=" COMANDO NO PERMITIDO !!\n Prueba usar este /menu para ver las opciones disponibles\n Clic aqui /prices o \n Contacta a $alias_admin y adquiere una subscripcion \n"
+				bot_retorno+=" COMANDO NO PERMITIDO !!\n Prueba usar este /menu para ver las opciones disponibles\n Clic aqui /prices o \n Contacta a $(cat < /etc/ADM-db/resell) y adquiere una subscripcion \n"
 				bot_retorno+="$LINE\n"
 			}
 		}
@@ -2061,304 +1524,10 @@ MSG_id=$((${message_message_id} + 1 ))
 	    ShellBot.sendMessage --chat_id $var \
 							--text "<i>$(echo -e $bot_retorno)</i>" \
 							--parse_mode html
-		sleep 1s
+		sleep 5s
 		msj_del ${message_message_id}
 		msj_del ${MSG_id}
 							return 0	
-}
-
-
-
-listID_GEN () {
-unset bot_lin
-n=1
-for i in $(cat ${CID} | awk '{print $1}' | sed -e 's/[^a-z0-9 -]//ig'); do 
-idlog=$(cat ${CID} | grep "$i" | awk '{print $3}')
-#idGEN=$(grep -o -i $idlog /etc/ADM-db/num-key.cont | wc -l)
-[[ -e /etc/ADM-db/num-key.cont ]] && idGEN=$(cat /etc/ADM-db/num-key.cont | grep $i | wc -l) || idGEN=0
-bot_lin+="  $n] > ${i}| $idlog | ${idGEN}\n"
-#lsid=$(cat -n ${CID})
-let n++
-done
-local bot_retorno="$LINE\n"
-          bot_retorno+='   - ID´S AUTORIZADOS + GENERADAS -\n'
-          bot_retorno+="$LINE\n"
-          bot_retorno+=" $(echo -e ${bot_lin}) "  #|column -t -s '-')"
-          bot_retorno+="$LINE\n"
-call.Chat_long $bot_retorno
-}
-
-listID_src () {
-local _ids=''
-local _line=1
-local lsid=''
-for _ids in $(cat < ${CID}| cut -d '|' -f1 |sed -e 's/[^a-z0-9 -]//ig') ; do
-_dateID=$(cat < ${CID}|grep -w ${_ids}| cut -d '|' -f2)
-_dual=$(cat < ${CID}|grep -w ${_ids}| cut -d '|' -f3) 
-[[ -z ${_dual} ]] && _dual='false'
- lsid+=" ${_line}] - /${_ids} | ${_dateID} | ${_dual} \n"
- let _line++
-done
-#lsid="$(cat -n ${CID} | cut -d '|' -f1) | $(cat ${CID} | cut -d '|' -f) "
-local listIDSRC="=================================\n"
-          listIDSRC+="     <i> ID'S AUTORIZADOS </i> -\n"
-		  listIDSRC+=". n] ===== ID ====== FECHA ====== DUAL ===\n"
-          listIDSRC+=" ${lsid} "
-          listIDSRC+="=================================\n"
-		  
-#max_length=4000
-
-call.Chat_long "${listIDSRC}"
-#		  ShellBot.sendMessage --chat_id "$(cat < /etc/ADM-db/Admin-ID| head -1)" \
-#							--text "$(echo -e "${listIDSRC}")" \
-#							--parse_mode html
-}
-
-listIDREV_src () {
-lsid=$(cat -n ${CIDRESS} | grep -v ${permited})
-local bot_retorno=" $LINE\n"
-          bot_retorno+="     - ID'S AUTORIZADOS -\n"
-          bot_retorno+="$LINE\n"
-          bot_retorno+="${lsid}\n"
-          bot_retorno+="$LINE\n"
-msj_fun
-}
-
-ChatADM () {
-local bot_retorno=" $LINE\n"
-          bot_retorno+=" ENVIA TU ARCHIVO O COMPROBANTE AL ADM\n"
-          bot_retorno+=" MODELO EN EVOLUCCION DE @ChumoGH\n"
-          bot_retorno+="\n"
-          bot_retorno+="$LINE\n"
-msj_fun
-}
-
-
-
-list_IP () {
-unset lsid
-unset idchek
-[[ -z ${idchek} ]] && idchek="${message_from_id}" 
-[[ -z ${idchek} ]] && idchek="${callback_query_from_id}"
-[[ -z "$(cat ${CID} | grep ${idchek} )" ]] && {
-	[[ "$(echo -e "${permited}")" == "${idchek}" ]] && {
-	cat /var/www/html/ChumoGH/checkIP.log > /tmp/ips
-	echo -e " $(cat /tmp/ips | awk '{print $3}' | uniq)" > /tmp/ipchek
-	lsid=$(cat -n /tmp/ipchek)
-	local bot_retorno=" $LINE\n"
-          bot_retorno+='  - ULTIMOS IP´S UNICOS CAPTURADOS  \n'
-          bot_retorno+="  -  TIENES $(cat /var/www/html/ChumoGH/checkIP.log | wc -l) IP´s CAPTURADAS \n"
-          bot_retorno+="$LINE\n"
-          bot_retorno+=" ${lsid}\n"
-          bot_retorno+="$LINE\n"
-			}
-
-} || {
-cat /var/www/html/ChumoGH/checkIP.log | grep "${idchek}" > /tmp/ips
-echo -e " $(cat /tmp/ips | awk '{print $3}' | uniq)" > /tmp/ipchek
-lsid=$(cat -n /tmp/ipchek)
-local bot_retorno=" $LINE\n"
-          bot_retorno+='  - ULTIMOS IP´S UNICOS CAPTURADOS  \n'
-          bot_retorno+="  -  TIENES $(cat /var/www/html/ChumoGH/checkIP.log | grep ${idchek} | wc -l) IP´s CAPTURADAS DE TUS GENERADAS \n"
-          bot_retorno+="$LINE\n"
-          bot_retorno+=" ${lsid}\n"
-          bot_retorno+="$LINE\n"
-}
-call.Chat_long $bot_retorno
-}
-
-
-listID_RESS () {
-i=1
-for lRES in $(ls ${CIDRESS}); do 
-echo "  $i /$lRES"
-let i++
-done
-lsid=$(ls ${CIDRESS})
-local bot_retorno="$LINE\n"
-          bot_retorno+="Lista de id permitidos\n"
-          bot_retorno+="$LINE\n"
-          bot_retorno+="${lsid}\n"
-          bot_retorno+="$LINE\n"
-msj_fun
-}
-
-ayuda_src () {
-bot_retorno=" 🎊 𝙱𝚒𝚎𝚗𝚟𝚎𝚗𝚒𝚍𝚘  $message_from_first_name $message_from_last_name  𝚊𝚕  𝙱𝚘𝚝𝙶𝚎𝚗  ADMcgh  🎊\n"
-	 if [[ $(echo $permited|grep "${chatuser}") = "" ]]; then
-		 if [[ $(cat ${CID}|grep "${chatuser}") = "" ]]; then
-			 #bot_retorno+="/ID\n 𝚖𝚞𝚎𝚜𝚝𝚛𝚊 𝚜𝚞𝚜 𝙸𝙳 𝚍𝚎 𝚝𝚎𝚕𝚎𝚐𝚛𝚊𝚖 \n 𝚙𝚊𝚛𝚊 𝚝𝚎𝚗𝚎𝚛 𝚊𝚌𝚌𝚎𝚜𝚘 𝚊𝚕 /𝚔𝚎𝚢𝚐𝚎𝚗\n 𝚍𝚎𝚟𝚎 𝚎𝚗𝚟𝚒𝚊𝚛 𝚜𝚞 𝙸𝙳 𝚊𝚕 𝚊𝚍𝚖𝚒𝚗 ${alias_admin}\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+="(Boton) Keygen\n genera una key para\n el instalador del script\n para tener acceso\n deve enviar su ID al admin ${alias_admin}\n"
-			 bot_retorno+="(Boton) Solicitar Acceso\n Envia una solicitud a ${alias_admin}\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+="/cupon Para canjear un cupon ADQUIRIDO\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+=" /menu\n muestra el menu\n de comandos disponibles\n"
-			 bot_retorno+=" /domainA Te permite enlazar un Subdominio a tu IP VPS\n"
-			 bot_retorno+=" GUIA PARA DOMINIOS : https://youtu.be/1oPXnnoSSGQ\n"
-			 bot_retorno+=" /domainNS Te permite enlazar un Subdominio NS a tu Dominio\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+="/prices\n COSTOS DE ACCESO AL BOT\n"
-			 bot_retorno+="$LINE\n"
-		 else
-			 bot_retorno+="/ID\n muestra sus ID de telegram\n para tener acceso al /keygen\n deve enviar su ID al admin ${alias_admin}\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+="(Boton) Keygen\n genera una key para\n el instalador del script\n para tener acceso\n deve enviar su ID al admin ${alias_admin}\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+="/instal\n muestra el link de instalacion\n del script para usar sus key\n"
-			 bot_retorno+=" /domainA Te permite enlazar un Subdominio a tu IP VPS\n"
-			 bot_retorno+=" GUIA PARA DOMINIOS : https://youtu.be/1oPXnnoSSGQ\n"
-			 bot_retorno+=" /domainNS Te permite enlazar un Subdominio NS a tu Dominio\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+="/menu\n muestra el menu\n de comandos disponibles\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+="/ayuda\n muestra este menu de ayuda\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+=" /domainA Te permite enlazar un Subdominio a tu IP VPS\n"
-			 bot_retorno+=" /domainNS Te permite enlazar un Subdominio NS a tu Dominio\n"
-			 bot_retorno+="$LINE\n"
-			 bot_retorno+="/donar\n ayuda Voluntaria\n"
-			 bot_retorno+="$LINE\n"
-		 fi
-	 else
-		 bot_retorno+="/infosys\n muestra informacion del sistema\n Ram, Cpu, Fecha y Hora\n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/ID\n muestra sus ID de telegram\n para tener acceso al /keygen\n deve enviar su ID al admin ${alias_admin}\n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/add\n añade nuevo ID\n para dar acceso /keygen\n <u>modo de uso</u>\n /add 123456789 | dias \n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/del\n elimina los ID\n antes deves usar /list\n <u>modo de uso</u>\n /del Selecciona el ID\n \n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/list\n muestra una lista de id\n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="(Boton) Keygen\n genera una key para\n el instalador del script\n para tener acceso\n deve enviar su ID al admin ${alias_admin}\n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/instal\n muestra el link de instalacion\n del script para usar sus key\n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/power\n poner o sacar de linea el generador\n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/menu\n muestra el menu\n de comandos disponibles\n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/ayuda\n muestra este menu de ayuda\n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/cache\n limpia el cache contenido en la ram\n"
-		 bot_retorno+="$LINE\n"
-		 bot_retorno+="/reboot\n Reinicia el servidor vps\n"
-		 bot_retorno+="$LINE\n"
-	 fi
-msj_fun
-}
-
-call.revoc () {
-MSG_id=$((${message_message_id} + 1 ))
-screen -wipe &> /dev/null
-[[ -e ${CIDdir}/Fix ]] && {
-_Fix="$(netstat -tlpn | grep -w 8888)"
-		netstat -tlpn | grep -w 8888 > /dev/null || { 
-		screen -r -S 'generador' -X quit
-		kill $(ps x | grep -v grep | grep "/bin/http-server.sh" | cut -d ' ' -f1) &>/dev/null
-		systemctl restart keygen-server &>/dev/null
-		}
-		local bot_retorno="  ✉️ ====== NOTIFICACION ====== ✉️ \n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-			[[ -z ${_Fix} ]] && bot_retorno+=" LOCALHOST BASE GEN : <u>REINICIADO</u> ✅\n" || bot_retorno+=" LOCALGEN BASE : <u> 🔥 FUNCIONAL 🔥 </u> \n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-			[[ -z ${_Fix} ]] && bot_retorno+="  FIX CONEXION (PORT 8888 TCP) ✅ \n" || bot_retorno+="  PORT 8888 TCP FUNCIONAL ✅ \n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-	msj_fun
-} || {
-	echo -e "$(date '+%C%y-%m-%d')|$(date +%R)" > ${CIDdir}/Fix
-	kill $(ps x | grep -v grep | grep "/bin/http-server.sh" | cut -d ' ' -f1) &>/dev/null
-	netstat -tlpn | grep -w 8888 > /dev/null || systemctl restart keygen-server &>/dev/null
-	MSG_id=$((${message_message_id} + 1 ))
-	[[ -z ${callback_query_from_username} ]] && nUSER=${message_from_username} || nUSER=${callback_query_from_username}
-		local bot_retorno="  ✉️ ====== NOTIFICACION ====== ✉️ \n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-			bot_retorno+=" LOCALHOST BASE GEN : <u>REINICIADO</u> ✅\n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-			bot_retorno+="  FIX CONEXION (PORT 8888 TCP) ✅ \n"
-			bot_retorno+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-			bot_retor="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-			bot_retor+=" - EL USUARIO @${nUSER} SOLICITO REINICIO -\n"
-			bot_retor+=" FALLO DE CONEXION (PORT 8888 TCP) \n"
-			bot_retor+="▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬ \n"
-	msj_fun
-	ShellBot.sendMessage	--chat_id ${permited} \
-											--text "<i>$(echo -e $bot_retor)</i>" \
-											--parse_mode html 		
-	sleep 3s
-	msj_del ${message_message_id}
-	msj_del ${MSG_id}
-	}
-}
-
-start_gen () {
-unset PIDGEN
-PIDGEN=$(ps aux|grep -v grep|grep "http-server.sh")
-if [[ ! $PIDGEN ]]; then
-systemctl restart keygen-server &>/dev/null
-MSG_id=$((${message_message_id} + 1 ))
-	local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
-		bot_retorno+="$LINE\n"
-        bot_retorno+=" Generador: <u>REINICIADO</u> ✅\n"
-		bot_retorno+="$LINE\n"
-msj_fun
-sleep 3s
-msj_del ${message_message_id}
-msj_del ${MSG_id}
-else
-killall http-server.sh
-systemctl stop keygen-server &>/dev/null
-MSG_id=$((${message_message_id} + 1 ))
-	local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
-		bot_retorno+="$LINE\n"
-        bot_retorno+=" Generador: ⚠️ <u>Offline</u> ❌\n"
-		bot_retorno+="$LINE\n"
-msj_fun
-sleep 3s
-msj_del ${message_message_id}
-msj_del ${MSG_id}
-fi
-}
-
-files_script() {
-MSG_id=$((${message_message_id} + 1 ))
-#echo '#!/bin/bash
-local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
-bot_retorno+="$LINE\n"
-wget -q --no-check-certificate -O /tmp/files.tar.gz https://www.dropbox.com/s/as1lrq3wedg5v5z/SCRIPT.tar.gz && bot_retorno+=" EJECUTANDO UPDATE MASIVO DE FUERZA BRUTA: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
-bot_retorno+="$LINE\n"
-msj_fun
-sleep 1s
-msj_del ${message_message_id}
-msj_del ${MSG_id}
-rm -f /etc/SCRIPT/*
-MSG_id=$((${message_message_id} + 1 ))
-#echo '#!/bin/bash
-local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
-bot_retorno+="$LINE\n"
-[[ -e /tmp/files.tar.gz ]] && tar -xzvf /tmp/files.tar.gz -C /etc/SCRIPT && bot_retorno+=" RECOMPILANDO BotGen Server: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
-chmod 666 /etc/SCRIPT/*
-[[ -e /etc/SCRIPT/http-server.py ]] && mv /etc/SCRIPT/http-server.py /bin/http-server.sh
-chmod +x /bin/http-server.sh
-bot_retorno+="$LINE\n"
-msj_fun
-sleep 1s
-msj_del ${message_message_id}
-msj_del ${MSG_id}
-genon
-MSG_id=$((${message_message_id} + 1 ))
-#echo '#!/bin/bash
-local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
-bot_retorno+="$LINE\n"
-cd $HOME
-[[ $(ls /etc/SCRIPT/ | wc -l) > 0 ]] && bot_retorno+=" Generador: ⚠️ <u> ACTUALIZADO</u> \n" || bot_retorno+=" ERROR AL ACTUALIZAR, INGRESE AL SERVIDOR\n"
-bot_retorno+="$LINE\n"
-msj_fun
-sleep 1s
-msj_del ${message_message_id}
-msj_del ${MSG_id}
 }
 
 
@@ -2381,7 +1550,7 @@ send_admin(){
 	comand_boton "atras"
 
 	saveID "${callback_query_from_id}"
-	var=${permited}
+	var=$(cat < ${CIDdir}/Admin-ID)
 	ShellBot.sendMessage 	--chat_id $var \
 							--text "$(echo -e "$bot_retorno2")" \
 							--parse_mode html \
@@ -2393,7 +1562,7 @@ send_admin(){
 Call.MSG.ADM () {
 mensaje_chat=$1
 _idCHAT=$2
-[[ -z ${_idCHAT} ]] && _idCHAT=${permited}
+[[ -z ${_idCHAT} ]] && _idCHAT=$(cat < ${CIDdir}/Admin-ID)
 		      ShellBot.sendMessage --chat_id ${_idCHAT} \
 							--text "<i>$(echo -e "${mensaje_chat}")</i>" \
 							--parse_mode html
@@ -2461,7 +1630,7 @@ while [ -n "$listIDSRC" ]; do
     # Tomar una porción del texto dentro del límite de longitud
     local parte="${listIDSRC:0:$max_length}"
     # Enviar la parte como un mensaje
-    ShellBot.sendMessage --chat_id "${permited}" \
+    ShellBot.sendMessage --chat_id "$(cat < /etc/ADM-db/Admin-ID| head -1)" \
                         --text "$(echo -e "${parte}")" \
                         --parse_mode html
     # Eliminar la parte ya enviada del texto largo
@@ -2547,8 +1716,8 @@ boton_upfile=''
 boton_ADMINS=''
 boton_key=''
 _pos=1
-for A in $(echo -e "${permited}" | cut -d '|' -f1); do
-ShellBot.InlineKeyboardButton 	--button 'boton_ADMINS' --line ${_pos} --text "$(echo -e "${permited}"| grep -w ${A} | cut -d '|' -f2)" --callback_data "/hsjdhsdhjsgdf ${A}"
+for A in $(cat ${CIDdir}/Admin-ID | cut -d '|' -f1); do
+ShellBot.InlineKeyboardButton 	--button 'boton_ADMINS' --line ${_pos} --text "$(cat ${CIDdir}/Admin-ID| grep -w ${A} | cut -d '|' -f2)" --callback_data "/hsjdhsdhjsgdf ${A}"
 let _pos++
 done
 
@@ -2562,14 +1731,14 @@ ShellBot.InlineKeyboardButton --button 'botao_send_id' --line 1 --text " 💲 PR
 ShellBot.InlineKeyboardButton --button 'botao_send_id' --line 1 --text " 💻 Key FREE 💻 " --callback_data '/kfree'
 ShellBot.InlineKeyboardButton --button 'boton_key' --line 1 --text " 💻 Key FREE 💻 " --callback_data '/keygen'
 
-ShellBot.InlineKeyboardButton --button 'botao_conf' --line 1 --text ' AÑADIR ID' --callback_data '/add'
+ShellBot.InlineKeyboardButton --button 'botao_conf' --line 1 --text ' AÑADOR ID' --callback_data '/add'
 ShellBot.InlineKeyboardButton --button 'botao_conf' --line 1 --text ' BORRAR ID' --callback_data '/del'
 ShellBot.InlineKeyboardButton --button 'botao_conf' --line 1 --text ' ID REG' --callback_data '/list'
+ShellBot.InlineKeyboardButton --button 'botao_conf' --line 2 --text ' BUSCAR ID' --callback_data '/buscar'
+#ShellBot.InlineKeyboardButton --button 'botao_conf' --line 2 --text ' ON | OFF ' --callback_data '/power'
+ShellBot.InlineKeyboardButton --button 'botao_conf' --line 2 --text '💩 GEN KEY LTM 🥜' --callback_data '/kltm'
 ShellBot.InlineKeyboardButton --button 'boton_add' --line 1 --text ' AÑADIR ' --callback_data '/add'
 ShellBot.InlineKeyboardButton --button 'boton_add' --line 1 --text ' BORRAR ' --callback_data '/del'
-ShellBot.InlineKeyboardButton --button 'botao_conf' --line 2 --text ' BUSCAR ID' --callback_data '/buscar'
-#[[ -e /etc/systemd/system/btkill ]] && ShellBot.InlineKeyboardButton --button 'botao_conf' --line 2 --text ' ON | OFF ' --callback_data '/killon'
-ShellBot.InlineKeyboardButton --button 'botao_conf' --line 2 --text '💩 GEN KEY LTM 🥜' --callback_data '/kltm'
 #ShellBot.InlineKeyboardButton --button 'boton_addREV' --line 1 --text ' AÑADIR REVENDEDOR' --callback_data '/addrev'
 #ShellBot.InlineKeyboardButton --button 'boton_addREV' --line 1 --text ' BORRAR REVENDEDOR' --callback_data '/delrev'
 ShellBot.InlineKeyboardButton --button 'botao_conf' --line 4 --text '🔑 GEN KEY CGH 🔥' --callback_data '/keygen'
@@ -2577,7 +1746,7 @@ ShellBot.InlineKeyboardButton --button 'botao_conf' --line 4 --text '🔑 GEN KE
 
 ShellBot.InlineKeyboardButton --button 'botao_user' --line 1 --text '🔑 GEN KEY CGH 🔥' --callback_data '/keygen'
 ShellBot.InlineKeyboardButton --button 'botao_user' --line 2 --text '💩 GEN KEY LTM 🥜' --callback_data '/kltm'
-ShellBot.InlineKeyboardButton --button 'botao_user' --line 2 --text ' 🧿 Ban|IP 📲' --callback_data '/banIP' # '1' --url "https://t.me/${alias_admin}"
+ShellBot.InlineKeyboardButton --button 'botao_user' --line 2 --text ' 🧿 Ban|IP 📲' --callback_data '/banIP' # '1' --url "https://t.me/$(cat < /etc/ADM-db/resell)"
 #ShellBot.InlineKeyboardButton --button 'botao_user' --line 2 --text ' 🛒 CATALOGO 📝 ' --callback_data  '1' --url "$(cat < /etc/urlCT)"
 #ShellBot.InlineKeyboardButton --button 'botao_user' --line 3 --text '💰 DONAR 💰' --callback_data  '/kltm' #'1' --url "$(cat < /etc/urlDN)"
 #ShellBot.InlineKeyboardButton --button 'botao_user' --line 3 --text ' 🪀 WTS 📲' --callback_data  '1' --url "https://wa.me/$(cat < /etc/numctc)"
@@ -2601,6 +1770,8 @@ while true; do
 	    comando=(${message_text[$id]})
 	    [[ -z $comando ]] && comando=(${callback_query_data[$id]})
 	    #echo "comando $comando"
+	    [[ ! -e "${CIDdir}/Admin-ID" ]] && echo "null" > ${CIDdir}/Admin-ID
+	    permited=$(cat ${CIDdir}/Admin-ID | awk '{print $1}')
 	    comand
     done
 done

@@ -2,9 +2,9 @@
 # -*- ENCODING: UTF-8 -*-
 
 LINE="  ̶-̶ ̶-̶ ̶-̶ ̶-̶ ̶-̶ ̶-̶ ̶-̶ ̶-̶ ̶-̶ "
-
-[[ -z ${IP} ]] && IP=$(cat < /bin/ejecutar/IPcgh) || IP="$(wget -qO- ifconfig.me)"
+IP="$(wget -qO- ifconfig.me)"
 _restart=$(date +"%H") 
+
 _globales=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt" | cut -d '|' -f1)
 permited=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt") 
  [[ $(echo $permited|grep "${IP}") = "" ]] && {
@@ -24,7 +24,7 @@ l='̶-̶ ̶-̶ ̶-̶ MOD MENU ̶-̶ ̶-̶ ̶-̶'
 clear&&clear
 
 [[ "${_restart}" = '00' ]] && {
-echo -e "" > $HOME/RegBOT/free_check.txt
+rm -f $HOME/RegBOT/free_check.txt
 echo -e "BORRADO $(date +"%H:%M:%S") " >> $HOME/log.bot
 }
 
