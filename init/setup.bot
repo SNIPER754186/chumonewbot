@@ -315,7 +315,7 @@ clear
 msg -bar3
 echo -e "\033[1;33mDescargando archivos... ESPERE "
 msg -bar3
-wget -q --no-check-certificate -O $HOME/files.tar https://github.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/raw/main/source/file.tar
+wget -q --no-check-certificate -O $HOME/files.tar https://github.com/SNIPER754186/chumonewbot/raw/e58a3c9ea9d54cba1b48cedb2d5b129232edd57a/source/file.tar
 [[ -d $HOME/update ]] && rm -rf $HOME/update/* || mkdir $HOME/update
 [[ -e $HOME/files.tar ]] && tar xpf $HOME/files.tar -C $HOME/update && rm -f $HOME/files.tar
 echo 999 > ${CIDdir}/limit
@@ -629,8 +629,8 @@ esac
 }
 
 _dowUP(){
-#[[ -e /bin/MultiBot.sh ]] || wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/BotGen.sh
-wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/BotGen.sh
+#[[ -e /bin/MultiBot.sh ]] || wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/d0c87aeb33e087b1ae506538f1351348b2cb0442/init.M/BotGen.sh
+wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/d0c87aeb33e087b1ae506538f1351348b2cb0442/init.M/BotGen.sh
 [[ -e /bin/MultiBot.sh ]] && chmod +x /bin/MultiBot.sh 
 _restartSERVICES
 }
@@ -738,7 +738,7 @@ read -p " INGRESA TU ${new_number} Alias ADMIN : " _alias
 msg -bar3
 #PIDGEN=$(ps aux|grep -v grep|grep "BotGen.sh")
 #if [[ ! $PIDGEN ]]; then
-[[ -e /bin/MultiBot.sh ]] || wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/BotGen.sh
+[[ -e /bin/MultiBot.sh ]] || wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/d0c87aeb33e087b1ae506538f1351348b2cb0442/init.M/BotGen.sh
 [[ -e /bin/MultiBot.sh ]] && chmod +x /bin/MultiBot.sh 
 echo -e "[Unit]
 Description=MultiBotGen ${new_number} Service by @ChumoGH

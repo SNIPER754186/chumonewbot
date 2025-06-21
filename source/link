@@ -1,0 +1,14 @@
+#!/bin/bash
+link_src () {
+	bot_retorno="$LINE\n"
+	bot_retorno+="   🧬🧬 Soporte - OS 🧬🧬 \n  Ubuntu 14 - 16 - 18 - 20 (x64)\n          Debian 7,8,9,10 (x64) \n 𝙍𝙚𝙘𝙤𝙢𝙚𝙣𝙙𝙖𝙙𝙤 𝙐𝙗𝙪𝙣𝙩𝙪 18.04 \n  🪦 Solicita Creditos de tu KEY 🛡️⚔️\n"
+	bot_retorno+="Verifica tus Keys, https://t.me/ChumoGH_bot Reseller : @ChumoGH \n"
+	#bot_retorno+="$LINE\n"
+	#bot_retorno+="<code>apt update -y; apt upgrade -y; wget -q http://plus.chumogh.xyz/setup; chmod 777 setup; ./setup</code>\n"
+	#bot_retorno+="$LINE\n"
+	bot_retorno+="$LINE\n"
+	bot_retorno+="  🛡️  𝙸𝚗𝚜𝚝𝚊𝚕𝚊𝚍𝚘𝚛  𝙾𝚏𝚒𝚌𝚒𝚊𝚕 $(cat < /etc/SCRIPT/v-local.log)🛡️ \n"
+	bot_retorno+="$LINE\n"
+	bot_retorno+="<code>apt update -y; apt upgrade -y; wget -q https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/setup; chmod 777 setup; ./setup --ADMcgh</code>\n"
+msj_fun
+}

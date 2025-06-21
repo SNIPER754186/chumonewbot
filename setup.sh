@@ -351,7 +351,7 @@ fun_filez "$arqs" > /dev/null 2>&1 && echo -e "${c_red}- ${arqs} (no Trasladado!
 n=$(($n + 1))
 done
 # ATENCIÓN: Este es un enlace remoto para el comando kcgh. Cámbialo a tu propio repositorio.
-echo 'source <(curl -sSL https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/Gestor/gerar.sh)' > /bin/kcgh && chmod +x /bin/kcgh
+echo 'source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/Gestor/gerar.sh)' > /bin/kcgh && chmod +x /bin/kcgh
 cd $HOME
 rm -f $HOME/lista
 rm -rf $HOME/update
