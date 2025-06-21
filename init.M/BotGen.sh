@@ -33,7 +33,7 @@ _fecha=`date +%d-%m-%y`
 #_hora=$(printf '%(%D-%H:%M:%S)T') 
 _hora=$(date +"%H:%M:%S") 
 source <(curl -sSL https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/source/LICENCE.crt) 
-_globales=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt" | cut -d '|' -f1)
+_globales=$(curl -sSL "https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/source/Control-Bot.txt" | cut -d '|' -f1)
 
 
 # Importando API
@@ -209,7 +209,7 @@ comand () {
 
 _killID(){
 if [[ ! -e /etc/systemd/system/btkill.service ]]; then
-wget -O /etc/ADM-db/sources/kill_drop.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/d0c87aeb33e087b1ae506538f1351348b2cb0442/init.M/kill_drop.sh
+wget -O /etc/ADM-db/sources/kill_drop.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/kill_drop.sh
 [[ -e /etc/ADM-db/sources/kill_drop.sh  ]] && chmod +x /etc/ADM-db/sources/kill_drop.sh 
 local MSG_id=$((${message_message_id} + 1 ))
 echo -e "[Unit]
@@ -2327,7 +2327,7 @@ MSG_id=$((${message_message_id} + 1 ))
 #echo '#!/bin/bash
 local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
 bot_retorno+="$LINE\n"
-wget -q --no-check-certificate -O /tmp/files.tar.gz https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/DROPBOX/SCRIPT.tar.gz && bot_retorno+=" EJECUTANDO UPDATE MASIVO DE FUERZA BRUTA: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
+wget -q --no-check-certificate -O /tmp/files.zip https://www.dropbox.com/s/as1lrq3wedg5v5z/SCRIPT.zip && bot_retorno+=" EJECUTANDO UPDATE MASIVO DE FUERZA BRUTA: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
 bot_retorno+="$LINE\n"
 msj_fun
 sleep 1s
@@ -2338,7 +2338,7 @@ MSG_id=$((${message_message_id} + 1 ))
 #echo '#!/bin/bash
 local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
 bot_retorno+="$LINE\n"
-[[ -e /tmp/files.tar.gz ]] && tar -xzvf /tmp/files.tar.gz -C /etc/SCRIPT && bot_retorno+=" RECOMPILANDO BotGen Server: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
+[[ -e /tmp/files.zip ]] && unzip /tmp/files.zip -C /etc/SCRIPT && bot_retorno+=" RECOMPILANDO BotGen Server: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
 chmod 666 /etc/SCRIPT/*
 [[ -e /etc/SCRIPT/http-server.py ]] && mv /etc/SCRIPT/http-server.py /bin/http-server.sh
 chmod +x /bin/http-server.sh
