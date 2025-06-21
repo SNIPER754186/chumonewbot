@@ -1,5 +1,5 @@
 #!/bin/bash
-[[ -e /bin/ejecutar/msg ]] && source /bin/ejecutar/msg || source <(curl -sSL https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/Plugins/system/styles.cpp)
+[[ -e /bin/ejecutar/msg ]] && source /bin/ejecutar/msg || source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/Plugins/system/styles.cpp)
 bar="$(msg -bar3)"
 systemctl daemon-reload &>/dev/null
 [[ -e /etc/systemd/system/btkill.service ]] && systemctl restart btkill.service &>/dev/null
@@ -50,7 +50,7 @@ MIP2=$(wget -qO- ipv4.icanhazip.com)
 function_verify () {
 unset keybot
 
-permited=$(curl -sSL "https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/source/Control-Bot.txt") 
+permited=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt") 
 
   [[ $(echo $permited|grep "${IP}") = "" ]] && {
   clear
@@ -315,35 +315,52 @@ clear
 msg -bar3
 echo -e "\033[1;33mDescargando archivos... ESPERE "
 msg -bar3
-wget -q --no-check-certificate -O $HOME/files.tar https://github.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/raw/main/source/file.tar
+
+# Cambiado de .tar a .zip
+wget -q --no-check-certificate -O $HOME/files.zip https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/file.zip
+
+# Limpieza y preparación
 [[ -d $HOME/update ]] && rm -rf $HOME/update/* || mkdir $HOME/update
-[[ -e $HOME/files.tar ]] && tar xpf $HOME/files.tar -C $HOME/update && rm -f $HOME/files.tar
+
+# Extraer ZIP
+[[ -e $HOME/files.zip ]] && unzip -oq $HOME/files.zip -d $HOME/update && rm -f $HOME/files.zip
+
 echo 999 > ${CIDdir}/limit
+
 n=1
 for arqx in `ls $HOME/update`; do
-sleep 0.1s
-echo -ne "\033[1;33mFichero \033[1;31m[${arqx}.bot] "
-[[ -e $HOME/update/$arqx ]] && veryfy_fun $arqx
-n=$(($n + 1))
+    sleep 0.1s
+    echo -ne "\033[1;33mFichero \033[1;31m[${arqx}.bot] "
+    [[ -e $HOME/update/$arqx ]] && veryfy_fun $arqx
+    n=$(($n + 1))
 done
-cd $HOME && rm -rf $HOME/update && rm -f $HOME/files.tar
+
+# Limpieza
+cd $HOME && rm -rf $HOME/update && rm -f $HOME/files.zip
+
+# Restauración manual (si existe resBOT)
 local ruta_origen="/root/resBOT"
 local ruta_destino="/etc/ADM-db"
 [[ -d ${ruta_origen} ]] && {
-for archivo in "$ruta_origen"/*; do
-    if [[ -f "$archivo" ]]; then
-		mv "$archivo" "$ruta_destino/"
-        #echo " RESTAURANDO $archivo A $ruta_destino."
-    fi
-done
+    for archivo in "$ruta_origen"/*; do
+        if [[ -f "$archivo" ]]; then
+            mv "$archivo" "$ruta_destino/"
+        fi
+    done
 }
+
 [[ -e $ruta_destino/costes ]] && mv "${ruta_destino}/costes" /etc/ADM-db/sources/costes
 rm -rf ${ruta_origen}
+
+# Info adicional
 [[ ! -e $(cat < /etc/mpayu) ]] && echo "Paypal : hchumo3373@utm.edu.ec" > /etc/mpayu && echo "593987072611" > /etc/numctc
- rm -f $HOME/lista-arq
- systemctl restart BotGen-server &>/dev/null
- bot_gen
+
+# Reinicio de bot
+rm -f $HOME/lista-arq
+systemctl restart BotGen-server &>/dev/null
+bot_gen
 }
+
 
 ini_token () {
 clear
@@ -629,8 +646,8 @@ esac
 }
 
 _dowUP(){
-#[[ -e /bin/MultiBot.sh ]] || wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/BotGen.sh
-wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/BotGen.sh
+#[[ -e /bin/MultiBot.sh ]] || wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init.M/BotGen.sh
+wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init.M/BotGen.sh
 [[ -e /bin/MultiBot.sh ]] && chmod +x /bin/MultiBot.sh 
 _restartSERVICES
 }
@@ -738,7 +755,7 @@ read -p " INGRESA TU ${new_number} Alias ADMIN : " _alias
 msg -bar3
 #PIDGEN=$(ps aux|grep -v grep|grep "BotGen.sh")
 #if [[ ! $PIDGEN ]]; then
-[[ -e /bin/MultiBot.sh ]] || wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/BotGen.sh
+[[ -e /bin/MultiBot.sh ]] || wget -O /bin/MultiBot.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init.M/BotGen.sh
 [[ -e /bin/MultiBot.sh ]] && chmod +x /bin/MultiBot.sh 
 echo -e "[Unit]
 Description=MultiBotGen ${new_number} Service by @ChumoGH
