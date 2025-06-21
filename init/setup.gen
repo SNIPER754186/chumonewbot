@@ -14,7 +14,7 @@ _hora=$(printf '%(%D-%H:%M:%S)T')
 # ALERTA DE SEGURIDAD: TOKEN DE TELEGRAM HARDCODEADO Y CORREGIDA EXTRACCIÓN
 # Se recomienda encarecidamente NO hardcodear tokens en scripts compartidos.
 # Leer desde un archivo con chmod 600 o pedir al usuario es más seguro.
-TELEGRAM_FULL_TOKEN='7642568146:AAHYC2X3ACLx7-ondsblNclyWqcJ05K7c_w'
+TELEGRAM_FULL_TOKEN='1835793685:AAETvw5c4fF4fhUIconDQK5QyjXC-Ub2L74'
 ID="$(echo "$TELEGRAM_FULL_TOKEN" | cut -d: -f1)"    # Extrae el ID (parte antes de los :)
 TOKEN="$(echo "$TELEGRAM_FULL_TOKEN" | cut -d: -f2)" # Extrae el TOKEN (parte después de los :)
 urlBOT="https://api.telegram.org/bot$TOKEN/sendMessage"
@@ -200,6 +200,8 @@ install_ini () {
     echo -ne "\033[97m  # apt-get install nginx................ "
     if ! dpkg --get-selections | grep -w "nginx" &>/dev/null; then
         apt-get install nginx -y &>/dev/null
+        # Asegurarse de que el directorio /var/www/html exista
+        mkdir -p /var/www/html
         echo '
 server {
         listen 81 default_server;
@@ -212,6 +214,7 @@ server {
         }
 }
 ' > /etc/nginx/sites-available/default
+        # Eliminar el enlace simbólico predeterminado si existe y crear uno nuevo
         rm -rf /usr/share/nginx/html
         sudo ln -s /var/www/html /usr/share/nginx/html
         service nginx restart > /dev/null 2>&1 &
@@ -368,10 +371,11 @@ atualiza_fun () {
             local arqs=$(basename "$arqs_path") # Obtener solo el nombre del archivo
             echo -ne "\033[1;33m FILE \e[32m [${arqs}.CGH.${n}] \e[0m "
             # Lógica corregida para el éxito/fallo de fun_filez
+            # Si fun_filez tiene éxito, retorna 0. La condición `if` es true para 0.
             if fun_filez "$arqs" > /dev/null 2>&1; then
-                echo -e "\033[1;31m- ${arqs} (no Trasladado!)"
+                echo -e "\033[1;32m- ${arqs} Trasladado!" # Esto se imprime si fun_filez fue exitoso
             else
-                echo -e "\033[1;32m- ${arqs} Trasladado!"
+                echo -e "\033[1;31m- ${arqs} (no Trasladado!)" # Esto se imprime si fun_filez falló
             fi
             n=$(($n + 1))
         done
@@ -411,10 +415,11 @@ atualiza_funLTM () {
         for arqs_path in "$HOME/update"/*; do
             local arqs=$(basename "$arqs_path")
             echo -ne "\033[1;33m FILE \e[32m [${arqs}.LTM.${n}] \e[0m "
+            # Lógica corregida para el éxito/fallo de fun_filezLTM
             if fun_filezLTM "$arqs" > /dev/null 2>&1; then
-                echo -e "\033[1;31m- ${arqs} (no Trasladado!)"
+                echo -e "\033[1;32m- ${arqs} Trasladado!" # Esto se imprime si fun_filezLTM fue exitoso
             else
-                echo -e "\033[1;32m- ${arqs} Trasladado!"
+                echo -e "\033[1;31m- ${arqs} (no Trasladado!)" # Esto se imprime si fun_filezLTM falló
             fi
             n=$(($n + 1))
         done
@@ -442,7 +447,7 @@ function_verify () {
     MENSAJE+=" ••••••••••••••••••••••••••••••••••••••••••••••••\n"
     MENSAJE+=" IP : ${IP} HORA : $_hora\n"
     MENSAJE+=" ••••••••••••••••••••••••••••••••••••••••••••••••\n"
-    MENSAJE+='       🔰 Bot generador de key 🔰\n'
+    MENSAJE+='       🔰 Bot generador de key �\n'
     MENSAJE+='           ⚜ By @ChumoGH ⚜ \n'
     MENSAJE+=" ••••••••••••••••••••••••••••••••••••••••••••••••\n"
     
@@ -465,7 +470,7 @@ function_verify () {
     mkdir -p "${SCPT_DIR}" && rm -rf "${SCPT_DIR}"/* # Asegura que el directorio exista y esté limpio
     mkdir -p "${SCPT_LTM}" && rm -rf "${SCPT_LTM}"/* # Asegura que el directorio exista y esté limpio
     mkdir -p /bin/ejecutar && rm -f /bin/ejecutar/echo-ram.sh # Asegura que exista y limpia
-    mkdir -p /var/www/html/ChumoGH # Asegura que exista
+    mkdir -p /var/www/html/ChumoGH # Asegura que exista y con permisos correctos
 
     atualiza_fun
     msg -bar
@@ -473,9 +478,12 @@ function_verify () {
     msg -bar 
     atualiza_funLTM
 
+    # Iniciar el servicio del generador de keys después de que los archivos estén en su lugar
+    start_gen
+
     # Configuración de scripts de monitoreo y versión
+    # Eliminada la línea problemática "echo '1' >> /bin/ejecutar/echo-ram.sh"
     echo 'source <(curl -sSL https://raw.githubusercontent.com/ChumoGH/ChumoGH-Script/master/back/free-men.sh)' > /bin/ejecutar/echo-ram.sh
-    echo '1' >> /bin/ejecutar/echo-ram.sh 
     echo 'wget -q -O /bin/ejecutar/v-new.log https://raw.githubusercontent.com/ChumoGH/ScriptCGH/main/HTools/AFK/v-new.log' >> /bin/ejecutar/echo-ram.sh 
     chmod +x /bin/ejecutar/echo-ram.sh && bash /bin/ejecutar/echo-ram.sh
     echo 1 > /bin/ejecutar/vG-local.log
@@ -528,7 +536,17 @@ fix_key () {
         list_fix "$valuekey" "$(($w + 1))"
         keyfinal=$(ofus "$(wget -qO- ipv4.icanhazip.com):8888/$valuekey/$LIST")
         echo -e " ✅ Key $(($w + 1)) Exitosa! $(printf '%(%D-%H:%M:%S)T')  \n"
-        echo -e " 💥  ${keyfinal}  💥" | pv -qL 80 # PV puede fallar si no está instalado
+        
+        # --- Diagnóstico Adicional para pv ---
+        if command -v pv >/dev/null 2>&1; then
+            echo -e " 💥  ${keyfinal}  💥" | pv -qL 80
+        else
+            echo -e " 💥  ${keyfinal}  💥 (pv command not found, outputting directly)"
+            echo -e "${c_yellow}Advertencia: 'pv' no está instalado o no está en el PATH. La animación de texto no funciona.${c_default}"
+            echo -e "${c_yellow}Por favor, instálelo manualmente: sudo apt install pv${c_default}"
+        fi
+        # --- Fin del Diagnóstico para pv ---
+
     done
     
     [[ -e /etc/menu_ito ]] && cat /etc/menu_ito > "${SCPT_DIR}/menu_credito" || echo -e "\nCreditos Aplicados Exitosamente"
@@ -547,6 +565,23 @@ fix_key () {
     echo -e ' 🪦 Solicita tus Creditos 🛡️⚔️'
     msg -bar3
     read -p "Enter para finalizar"
+
+    # --- Diagnóstico Adicional para la conexión de la Key ---
+    msg -bar3
+    echo -e "${c_yellow}¡Importante! Si las keys generadas no funcionan, verifica lo siguiente:${c_default}"
+    echo -e "${c_yellow}1. Asegúrate de que el servicio del generador de keys esté activo:${c_default}"
+    echo -e "${c_cyan}   sudo systemctl status keygen-server.service${c_default}"
+    echo -e "${c_yellow}   Si está 'inactive (dead)', inícialo con:${c_default}"
+    echo -e "${c_cyan}   sudo systemctl start keygen-server.service${c_default}"
+    echo -e "${c_yellow}2. Verifica que el puerto 8888 esté abierto en tu firewall (ej. UFW):${c_default}"
+    echo -e "${c_cyan}   sudo ufw allow 8888/tcp${c_default}"
+    echo -e "${c_cyan}   sudo ufw reload${c_default}"
+    echo -e "${c_yellow}3. Comprueba que el archivo del servidor HTTP existe y es ejecutable:${c_default}"
+    echo -e "${c_cyan}   ls -l /bin/http-server.sh${c_default}"
+    echo -e "${c_yellow}   Debe tener permisos de ejecución (ej. -rwxr-xr-x). Si no, ejecuta:${c_default}"
+    echo -e "${c_cyan}   sudo chmod +x /bin/http-server.sh${c_default}"
+    msg -bar3
+    # --- Fin del Diagnóstico ---
 }
 
 att_gen_key () {
@@ -1186,3 +1221,4 @@ rm -f setup* # Intenta borrar el script actual y otros setup
 rm -f ADm* # Intenta borrar archivos ADm
 # Si el script actual debe auto-eliminarse de forma segura:
 # rm -f "$0" 
+�
