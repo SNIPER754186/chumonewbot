@@ -65,7 +65,7 @@ tput cuu1 >&2 && tput dl1 >&2
 
 
 
-permited=$(curl -sSL "https://github.com/SNIPER754186/chumonewbot/blob/LaTamSRC/source/Control-Bot.txt") 
+permited=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt") 
 [[ $(echo $permited|grep "$(wget -qO- ifconfig.me)") = "" ]] && {
 rm -rf /etc/SCRIPT
 systemctl disable BotGen-server.service	
@@ -519,7 +519,7 @@ fi
 files_script() {
 echo " CREANDO EL FCHERO DE ACTUALIZACION"
 
-wget -q --no-check-certificate -O /tmp/files.tar.gz https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/SCRIPTS/ADMcgh/SCRIPT.tar.gz && echo -e " DESCARGANDO ChumoGH EN 127.0.0.1:81 " || echo -e " ERROR EN DESCARGAR LOCALFILES"
+wget -q --no-check-certificate -O /tmp/files.tar.gz https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/SCRIPTS/ADMcgh/SCRIPT.tar.gz && echo -e " DESCARGANDO ChumoGH EN 127.0.0.1:81 " || echo -e " ERROR EN DESCARGAR LOCALFILES"
 rm -f /etc/SCRIPT/*
 [[ -e /tmp/files.tar.gz ]] && tar -xzvf /tmp/files.tar.gz -C /etc/SCRIPT &> /dev/null && echo -e " FILES EXTRAIDOS EN /SCRIPT  " || echo -e " ERROR EN EXTRAER FILES "
 chmod 666 /etc/SCRIPT/*

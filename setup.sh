@@ -103,7 +103,7 @@ check_ip # Asegura que IP esté definida antes de usarla
 # ATENCIÓN: Esta sección es el "kill switch" remoto.
 # En tu implementación bajo control, esto DEBE ser reemplazado por tu propia lógica local
 # o eliminado por completo si no deseas un control remoto de las instancias.
-# permited=$(curl -sSL "https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCsK/main/source/Control-Bot.txt")
+# permited=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt")
 # if [[ $(echo "$permited" | grep "$(wget -qO- ifconfig.me)") = "" ]]; then
 #     rm -rf /etc/SCRIPT
 #     systemctl disable BotGen-server.service
@@ -340,7 +340,7 @@ msg -bar
 echo -e "${c_yellow}Descargando ChumoGH... ESPERE ${c_default}"
 msg -bar
 # ATENCIÓN: Este es un enlace remoto. En tu control, cámbialo a tu propio repositorio.
-wget -q --no-check-certificate -O $HOME/files.tar.gz https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/SCRIPTS/ADMcgh/SCRIPT.tar.gz
+wget -q --no-check-certificate -O $HOME/files.tar.gz https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/SCRIPTS/ADMcgh/SCRIPT.tar.gz
 [[ -e $HOME/files.tar.gz ]] && tar -xzvf $HOME/files.tar.gz -C $HOME/update &> /dev/null
 rm -f $HOME/files.tar.gz
 chmod 666 $HOME/update/*
