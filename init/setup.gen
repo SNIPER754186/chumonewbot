@@ -539,7 +539,8 @@ fix_key () {
         
         # --- Diagnóstico Adicional para pv ---
         if command -v pv >/dev/null 2>&1; then
-            echo -e " 💥  ${keyfinal}  💥" | pv -qL 80
+            echo -e " 💥  ${keyfinal}  💥"
+
         else
             echo -e " 💥  ${keyfinal}  💥 (pv command not found, outputting directly)"
             echo -e "${c_yellow}Advertencia: 'pv' no está instalado o no está en el PATH. La animación de texto no funciona.${c_default}"
