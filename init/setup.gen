@@ -242,7 +242,7 @@ echo -e "\033[1;33mDescargando ChumoGH... ESPERE "
 msg -bar
 
 # DESCARGA ZIP desde GitHub (RUTA ACTUALIZADA)
-wget -q --no-check-certificate -O $HOME/files.zip "https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/SCRIPTS/ADMcgh/SCRIPT.zip"
+wget -q --no-check-certificate -O $HOME/files.zip "https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/SCRIPTS/ADMcgh/SCRIPT.zip"
 
 [[ -d $HOME/update ]] && rm -rf $HOME/update/* || mkdir $HOME/update
 
