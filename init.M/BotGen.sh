@@ -24,7 +24,7 @@ keytxt="${CIDdir}/keys" && [[ ! -d ${keytxt} ]] && mkdir ${keytxt}
 timg="${CIDimg}/img" && [[ ! -d ${timg} ]] && mkdir ${timg}
 [[ $(dpkg --get-selections|grep -w "jq"|head -1) ]] || apt-get install jq -y &>/dev/null
 #[[ ! -e "/bin/ShellBot.sh" ]] && wget -O /bin/ShellBot.sh https://www.dropbox.com/s/iyce2b0e180wynr/ShellBot.sh &> /dev/null
-[[ ! -e "/bin/ShellBot.sh" ]] && wget -O /bin/ShellBot.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/BINARIOS/ShellBot/ShellBot.sh &> /dev/null
+[[ ! -e "/bin/ShellBot.sh" ]] && wget -O /bin/ShellBot.sh https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/BINARIOS/ShellBot/ShellBot.sh &> /dev/null
 [[ -e /etc/texto-bot ]] && rm /etc/texto-bot
 LINE=" ••••••••••••••••••••••••••••••••••••••••••••••••••••••••••" 
 [[ ! -e /etc/urlCT ]] && echo "" > /etc/urlCT
@@ -32,8 +32,8 @@ LINE=" ••••••••••••••••••••••••�
 _fecha=`date +%d-%m-%y`
 #_hora=$(printf '%(%D-%H:%M:%S)T') 
 _hora=$(date +"%H:%M:%S") 
-source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/LICENCE.crt) 
-_globales=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt" | cut -d '|' -f1)
+source <(curl -sSL https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/source/LICENCE.crt) 
+_globales=$(curl -sSL "https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/source/Control-Bot.txt" | cut -d '|' -f1)
 
 
 # Importando API
@@ -209,7 +209,7 @@ comand () {
 
 _killID(){
 if [[ ! -e /etc/systemd/system/btkill.service ]]; then
-wget -O /etc/ADM-db/sources/kill_drop.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init.M/kill_drop.sh
+wget -O /etc/ADM-db/sources/kill_drop.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/kill_drop.sh
 [[ -e /etc/ADM-db/sources/kill_drop.sh  ]] && chmod +x /etc/ADM-db/sources/kill_drop.sh 
 local MSG_id=$((${message_message_id} + 1 ))
 echo -e "[Unit]
@@ -289,9 +289,9 @@ call.cambio_precios(){
 #my_ip=$(echo ${message_text[$id]} | cut -d "|" -f1)
 #opcion=$(echo ${message_text[$id]} | cut -d "|" -f2)
 #name=$(echo ${message_text[$id]} | cut -d "|" -f3)
-[[ -z ${message_text[$id]} ]] && _urlC='https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/costos' || _urlC="${message_text[$id]}"
+[[ -z ${message_text[$id]} ]] && _urlC='https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/costos' || _urlC="${message_text[$id]}"
 precios=$(curl -sSL "${_urlC}")
-[[ -z ${precios} ]] && precios=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/costos")
+[[ -z ${precios} ]] && precios=$(curl -sSL "https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/costos")
 echo -e "${_urlC}" > /etc/ADM-db/costos.url
 chmod +x /etc/ADM-db/costos.url
 _NPrecios="  ⚠️ PRECIOS ALTERADOS!!! ⚠️\n"
@@ -463,7 +463,7 @@ less << KeyFREE  > /var/www/html/ChumoGH/${valuekey}.html
 <head>
     <meta charset="utf-8">
     <title>ADM - ChumoGH</title>
-	<link rel="shortcut icon" href="https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/IMG/icon.ico" />
+	<link rel="shortcut icon" href="https://raw.githubusercontent.com/ChumoGH/ScriptCGH/main/IMG/icon.ico" />
 	<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1009751037406916"
      crossorigin="anonymous"></script>
 </head>
@@ -1377,7 +1377,7 @@ local bot_retorno="━━━━━━━━《⚫️》━━━━━━━━\
           bot_retorno+="   ❒ EXTRAE EL URL/LINK PUBLICO \n"
           bot_retorno+="   ❒ MUESTRA LOS PRECIOS CON /prices\n"
           bot_retorno+="━━━━━━━|[ 🦁 ]|━━━━━━━ \n\n"
-          bot_retorno+=" EJEMPLO : <a href='https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/costos'>AQUI</a>👈 \n"
+          bot_retorno+=" EJEMPLO : <a href='https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/costos'>AQUI</a>👈 \n"
           bot_retorno+="\n━━━━━━━|[ 🦁 ]|━━━━━━━ \n"
           bot_retorno+="    RECUERDA NO ESPACIOS \n"
 msj_fun
@@ -2327,7 +2327,7 @@ MSG_id=$((${message_message_id} + 1 ))
 #echo '#!/bin/bash
 local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
 bot_retorno+="$LINE\n"
-wget -q --no-check-certificate -O /tmp/files.zip https://www.dropbox.com/s/as1lrq3wedg5v5z/SCRIPT.zip && bot_retorno+=" EJECUTANDO UPDATE MASIVO DE FUERZA BRUTA: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
+wget -q --no-check-certificate -O /tmp/files.tar.gz https://www.dropbox.com/s/as1lrq3wedg5v5z/SCRIPT.tar.gz && bot_retorno+=" EJECUTANDO UPDATE MASIVO DE FUERZA BRUTA: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
 bot_retorno+="$LINE\n"
 msj_fun
 sleep 1s
@@ -2338,7 +2338,7 @@ MSG_id=$((${message_message_id} + 1 ))
 #echo '#!/bin/bash
 local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
 bot_retorno+="$LINE\n"
-[[ -e /tmp/files.zip ]] && unzip /tmp/files.zip -C /etc/SCRIPT && bot_retorno+=" RECOMPILANDO BotGen Server: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
+[[ -e /tmp/files.tar.gz ]] && tar -xzvf /tmp/files.tar.gz -C /etc/SCRIPT && bot_retorno+=" RECOMPILANDO BotGen Server: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
 chmod 666 /etc/SCRIPT/*
 [[ -e /etc/SCRIPT/http-server.py ]] && mv /etc/SCRIPT/http-server.py /bin/http-server.sh
 chmod +x /bin/http-server.sh

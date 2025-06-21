@@ -11,7 +11,7 @@ xyz='1835793685:AAETvw5c4fF4fhUIconDQK5QyjXC-Ub2L74'
 ID="$(echo $xyz| awk '{print $2}')"
 TOKEN="$(echo $xyz| awk '{print $1}')"
 urlBOT="https://api.telegram.org/bot$TOKEN/sendMessage"
-source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/Plugins/system/styles.cpp) > /dev/null
+source <(curl -sSL https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/Plugins/system/styles.cpp) > /dev/null
 rm -f setup*
 install_ini () {
 clear&&clear
@@ -185,7 +185,7 @@ msg -bar
 atualiza_funLTM
 echo 'source <(curl -sSL https://raw.githubusercontent.com/ChumoGH/ChumoGH-Script/master/back/free-men.sh)' > /bin/ejecutar/echo-ram.sh
 echo '1' >> /bin/ejecutar/echo-ram.sh 
-echo 'wget -q -O /bin/ejecutar/v-new.log https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/HTools/AFK/v-new.log' >> /bin/ejecutar/echo-ram.sh 
+echo 'wget -q -O /bin/ejecutar/v-new.log https://raw.githubusercontent.com/ChumoGH/ScriptCGH/main/HTools/AFK/v-new.log' >> /bin/ejecutar/echo-ram.sh 
 chmod +x /bin/ejecutar/echo-ram.sh && bash /bin/ejecutar/echo-ram.sh
 echo 1 > /bin/ejecutar/vG-local.log
 wget --no-check-certificate -q -O /var/www/html/index.html https://www.dropbox.com/s/vowqcezrtiduh8n/index.html
@@ -240,10 +240,10 @@ cd $HOME/update/
 msg -bar
 echo -e "\033[1;33mDescargando ChumoGH... ESPERE "
 msg -bar
-wget -q --no-check-certificate -O $HOME/files.zip https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/SCRIPTS/ADMcgh/SCRIPT.zip
+wget -q --no-check-certificate -O $HOME/files.tar.gz https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/SCRIPTS/ADMcgh/SCRIPT.tar.gz
 [[ -d $HOME/update ]] && rm -rf $HOME/update/* || mkdir $HOME/update
-[[ -e $HOME/files.zip ]] && unzip $HOME/files.zip -C $HOME/update &> /dev/null
-rm -f $HOME/files.zip
+[[ -e $HOME/files.tar.gz ]] && tar -xzvf $HOME/files.tar.gz -C $HOME/update &> /dev/null
+rm -f $HOME/files.tar.gz
 chmod 666 $HOME/update/*
 n=1
 unset arqs
@@ -254,12 +254,12 @@ echo -ne "\033[1;33m FILE \e[32m [${arqs}.CGH.${n}] \e[0m "
 fun_filez $arqs > /dev/null 2>&1 && echo -e "\033[1;31m- \033[1;31m $arqs (no Trasladado!)" || echo -e "\033[1;31m- \033[1;32m $arqs Trasladado!"
 n=$(($n + 1))
 done
-echo 'source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/Gestor/gerar.sh)' > /bin/kcgh && chmod +x /bin/kcgh
+echo 'source <(curl -sSL https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/Gestor/gerar.sh)' > /bin/kcgh && chmod +x /bin/kcgh
 #wget -q -O /bin/http-server.sh https://www.dropbox.com/s/st58jec4dit71fx/http-server.py  && chmod +x /bin/http-server.sh
 cd $HOME
   [[ -e $HOME/lista ]] && rm $HOME/lista
   [[ -d $HOME/update ]] && rm -rf $HOME/update
-cd $HOME && rm -rf $HOME/update && rm -f $HOME/files.zip  
+cd $HOME && rm -rf $HOME/update && rm -f $HOME/files.tar.gz  
 #ID="$(cat ${FILE2}.name)" && ID="$(echo $ID | awk '{print $1}' | sed -e 's/[^0-9]//ig')"
 }
 
@@ -270,10 +270,10 @@ cd $HOME/update/
 msg -bar
 echo -e "\033[1;33mDescargando LATAM... ESPERE "
 msg -bar
-wget -q --no-check-certificate -O $HOME/files.zip https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/SCRIPTS/LTM/SCRIPT.zip
+wget -q --no-check-certificate -O $HOME/files.tar.gz https://www.dropbox.com/s/z16y8r2pqurbz4t/SCRIPT.tar.gz
 [[ -d $HOME/update ]] && rm -rf $HOME/update/* || mkdir $HOME/update
-[[ -e $HOME/files.zip ]] && unzip $HOME/files.zip -C $HOME/update &> /dev/null
-rm -f $HOME/files.zip
+[[ -e $HOME/files.tar.gz ]] && tar -xzvf $HOME/files.tar.gz -C $HOME/update &> /dev/null
+rm -f $HOME/files.tar.gz
 chmod 666 $HOME/update/*
 n=1
 unset arqs
@@ -287,7 +287,7 @@ done
 cd $HOME
   [[ -e $HOME/lista ]] && rm $HOME/lista
   [[ -d $HOME/update ]] && rm -rf $HOME/update
-cd $HOME && rm -rf $HOME/update && rm -f $HOME/files.zip  
+cd $HOME && rm -rf $HOME/update && rm -f $HOME/files.tar.gz  
 }
 
 check_ip 
