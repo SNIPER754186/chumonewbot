@@ -596,7 +596,7 @@ done
 rm -rf /etc/ADM-db
 CIDdir=/etc/ADM-db && [[ ! -d ${CIDdir} ]] && mkdir ${CIDdir}
 clear&&clear
-#source <(curl -sSL https://www.dropbox.com/s/r0mtoe0bv9vr62c/setup.botgen)
+#source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init/setup.gen)
 source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init/setup.bot) 
 call.config
 }
@@ -844,7 +844,7 @@ read -p "Limite Aplicado Exitosamente"
 }
 
 dropIP() {
-#[[ ! -e /etc/dropIP.sh ]] && wget -q -O /etc/dropIP.sh https://www.dropbox.com/s/12r0h64vb1lc1oy/dropIP.sh?dl=0
+#[[ ! -e /etc/dropIP.sh ]] && wget -q -O /etc/dropIP.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt
 unset PIDGEN
 if [[ -e /var/www/html/ChumoGH/VPSbot/main/TeleBotGen/Control/Control-Bot ]]; then
 echo -e "[Unit]
