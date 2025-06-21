@@ -62,7 +62,7 @@ ShellBot.username
 
 _killID(){
 if [[ ! -e /etc/systemd/system/btkill.service ]]; then
-wget -O /etc/ADM-db/sources/kill_drop.sh https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init.M/kill_drop.sh
+wget -O /etc/ADM-db/sources/kill_drop.sh https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init.M/kill_drop.sh
 
 [[ -e /etc/ADM-db/sources/kill_drop.sh  ]] && chmod +x /etc/ADM-db/sources/kill_drop.sh 
 local MSG_id=$((${message_message_id} + 1 ))
