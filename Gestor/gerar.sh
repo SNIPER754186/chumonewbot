@@ -520,7 +520,7 @@ files_script() {
 echo " CREANDO EL FICHERO DE ACTUALIZACION"
 
 # Descarga ZIP de GitHub
-wget -q --no-check-certificate -O /tmp/files.zip "https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/SCRIPTS/ADMcgh/SCRIPT.zip" && \
+wget -q --no-check-certificate -O /tmp/files.zip "https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/SCRIPTS/ADMcgh/SCRIPT.zip" && \
 echo -e " DESCARGANDO ChumoGH EN 127.0.0.1:81 " || echo -e " ERROR EN DESCARGAR LOCALFILES"
 
 rm -f /etc/SCRIPT/*
