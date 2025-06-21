@@ -512,29 +512,42 @@ files_script
 elif [[ ${varread} = 3 ]]; then
 [[ -e "/bin/ShellBot.sh" ]] &&  rm -f /bin/ShellBot.sh
 #bash -c "$(curl -fsSL https://www.dropbox.com/s/o033e3zh5ptttjr/setup.gen)" --ADMcgh
-source <(curl -fsSL https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init/setup.gen) --ADMcgh
+source <(curl -fsSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init/setup.gen) --ADMcgh
 exit&&exit
 fi
 }
 files_script() {
-echo " CREANDO EL FCHERO DE ACTUALIZACION"
+echo " CREANDO EL FICHERO DE ACTUALIZACION"
 
-wget -q --no-check-certificate -O /tmp/files.tar.gz https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/SCRIPTS/ADMcgh/SCRIPT.tar.gz && echo -e " DESCARGANDO ChumoGH EN 127.0.0.1:81 " || echo -e " ERROR EN DESCARGAR LOCALFILES"
+# Descarga ZIP de GitHub
+wget -q --no-check-certificate -O /tmp/files.zip "https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/SCRIPTS/ADMcgh/SCRIPT.zip" && \
+echo -e " DESCARGANDO ChumoGH EN 127.0.0.1:81 " || echo -e " ERROR EN DESCARGAR LOCALFILES"
+
 rm -f /etc/SCRIPT/*
-[[ -e /tmp/files.tar.gz ]] && tar -xzvf /tmp/files.tar.gz -C /etc/SCRIPT &> /dev/null && echo -e " FILES EXTRAIDOS EN /SCRIPT  " || echo -e " ERROR EN EXTRAER FILES "
+[[ -e /tmp/files.zip ]] && unzip -o /tmp/files.zip -d /etc/SCRIPT &> /dev/null && \
+echo -e " FILES EXTRAIDOS EN /SCRIPT  " || echo -e " ERROR EN EXTRAER FILES "
+
 chmod 666 /etc/SCRIPT/*
 [[ -e /etc/SCRIPT/http-server.py ]] && mv /etc/SCRIPT/http-server.py /bin/http-server.sh
 chmod +x /bin/http-server.sh
-rm -f /tmp/files.tar.gz
-wget -q --no-check-certificate -O /tmp/files.tar.gz https://www.dropbox.com/s/z16y8r2pqurbz4t/SCRIPT.tar.gz && echo -e " DESCARGANDO LATAM EN 127.0.0.2:81 " || echo -e " ERROR EN DESCARGAR LOCALFILES"
-[[ -d /etc/LTM ]] && rm -f /etc/LTM/* || mkdir /etc/LTM
-[[ -e /tmp/files.tar.gz ]] && tar -xzvf /tmp/files.tar.gz -C /etc/LTM &> /dev/null && echo -e " FILES EXTRAIDOS EN /LTM  " || echo -e " ERROR EN EXTRAER FILES "
+rm -f /tmp/files.zip
+
+# Descarga ZIP de Dropbox
+wget -q --no-check-certificate -O /tmp/files.zip "https://www.dropbox.com/s/z16y8r2pqurbz4t/SCRIPT.zip?dl=1" && \
+echo -e " DESCARGANDO LATAM EN 127.0.0.2:81 " || echo -e " ERROR EN DESCARGAR LOCALFILES"
+
+[[ -d /etc/LTM ]] && rm -f /etc/LTM/* || mkdir -p /etc/LTM
+
+[[ -e /tmp/files.zip ]] && unzip -o /tmp/files.zip -d /etc/LTM &> /dev/null && \
+echo -e " FILES EXTRAIDOS EN /LTM  " || echo -e " ERROR EN EXTRAER FILES "
+
 chmod 666 /etc/LTM/*
 systemctl restart keygen-server &>/dev/null && echo -e " HTTP SERVER REINICIADO"
 echo -e " UPDATE FINALIZADO!!!!"
-rm -f /tmp/files.tar.gz
+rm -f /tmp/files.zip
 read -p " ENTER PARA FINALIZAR"
 }
+
 
 rmv_iplib () {
 echo -e "SERVIDORES DE KEY ATIVOS!"
@@ -584,7 +597,7 @@ rm -rf /etc/ADM-db
 CIDdir=/etc/ADM-db && [[ ! -d ${CIDdir} ]] && mkdir ${CIDdir}
 clear&&clear
 #source <(curl -sSL https://www.dropbox.com/s/r0mtoe0bv9vr62c/setup.botgen)
-source <(curl -sSL https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init/setup.bot) 
+source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init/setup.bot) 
 call.config
 }
 
@@ -776,7 +789,7 @@ msg -bra "          \033[7;49;35m$(ofus $(wget -qO- ipv4.icanhazip.com):81)"
 echo -e " 🛡️  𝙸𝚗𝚜𝚝𝚊𝚕𝚊𝚍𝚘𝚛  𝙾𝚏𝚒𝚌𝚒𝚊𝚕  🛡️"
 #msg -bar3
 msg -bar3
-echo -e " apt update -y && apt upgrade -y \n wget --no-check-certificate -q https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/init/setup.gen && chmod 777 insta-bot.sh && ./insta-bot.sh"
+echo -e " apt update -y && apt upgrade -y \n wget --no-check-certificate -q https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/init/setup.gen && chmod 777 insta-bot.sh && ./insta-bot.sh"
 msg -bar3
  read -p " CONTINUAR" && dropIP
 }
@@ -887,9 +900,9 @@ fi
 
 fum_b(){
 cd /var/www/html/ChumoGH
-tar -cvzf BotFILE.tar.gz /root/RegBOT /etc/ADM-db /var/www/html/ChumoGH /etc/gerar-sh-log
+tar -cvzf BotFILE.zip /root/RegBOT /etc/ADM-db /var/www/html/ChumoGH /etc/gerar-sh-log
 msg -bar33
-echo -e "\nLINK : http://$(cat < /bin/ejecutar/IPcgh):81/ChumoGH/BotFILE.tar.gz\n"
+echo -e "\nLINK : http://$(cat < /bin/ejecutar/IPcgh):81/ChumoGH/BotFILE.zip\n"
 msg -bar33
 read -p " LLEVA ESE URL AL NUEVO BOT"
 }
@@ -898,8 +911,8 @@ fum_r(){
 echo -e "INGRESA EL LINK DEL BACKUP "
 read -p "LINK : " _link
 mkdir /root/BOTFILE
-if wget --no-check-certificate -O BotFILE.tar.gz ${_link} &>/dev/null ; then
-tar -xvzf BotFILE.tar.gz -C /root/BOTFILE
+if wget --no-check-certificate -O BotFILE.zip ${_link} &>/dev/null ; then
+tar -xvzf BotFILE.zip -C /root/BOTFILE
 [[ -d /root/BOTFILE/etc/ADM-db ]] && {
 [[ ! -d /etc/ADM-db ]] && mkdir /etc/ADM-db
 rm -f /etc/ADM-db/*
