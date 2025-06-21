@@ -533,7 +533,7 @@ chmod +x /bin/http-server.sh
 rm -f /tmp/files.zip
 
 # Descarga ZIP de Dropbox
-wget -q --no-check-certificate -O /tmp/files.zip "https://www.dropbox.com/s/z16y8r2pqurbz4t/SCRIPT.zip?dl=1" && \
+wget -q --no-check-certificate -O /tmp/files.zip https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/dropbox/SCRIPT.zip" && \
 echo -e " DESCARGANDO LATAM EN 127.0.0.2:81 " || echo -e " ERROR EN DESCARGAR LOCALFILES"
 
 [[ -d /etc/LTM ]] && rm -f /etc/LTM/* || mkdir -p /etc/LTM
