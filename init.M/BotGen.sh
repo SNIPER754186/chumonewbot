@@ -33,7 +33,7 @@ _fecha=`date +%d-%m-%y`
 #_hora=$(printf '%(%D-%H:%M:%S)T') 
 _hora=$(date +"%H:%M:%S") 
 source <(curl -sSL https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/source/LICENCE.crt) 
-_globales=$(curl -sSL "https://raw.githubusercontent.com/Qm90R2VuIDIwMjQgQ2h1bW9HSCsK/U291cmNlIEJvckdlbiBBRE1jZ2ggQ2h1bW9HSCAyMDI0IFBsdXM-/main/source/Control-Bot.txt" | cut -d '|' -f1)
+_globales=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/source/Control-Bot.txt" | cut -d '|' -f1)
 
 
 # Importando API
