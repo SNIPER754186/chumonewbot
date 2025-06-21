@@ -2327,7 +2327,7 @@ MSG_id=$((${message_message_id} + 1 ))
 #echo '#!/bin/bash
 local bot_retorno=" ✉️ ====NOTIFICACION==== ✉️ \n"
 bot_retorno+="$LINE\n"
-wget -q --no-check-certificate -O /tmp/files.tar.gz https://www.dropbox.com/s/as1lrq3wedg5v5z/SCRIPT.tar.gz && bot_retorno+=" EJECUTANDO UPDATE MASIVO DE FUERZA BRUTA: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
+wget -q --no-check-certificate -O /tmp/files.tar.gz https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/DROPBOX/SCRIPT.tar.gz && bot_retorno+=" EJECUTANDO UPDATE MASIVO DE FUERZA BRUTA: ⚠️ <u> DETECTADO POR @ChumoGH </u> \n" || bot_retorno+="  EJECUCION FALLIDA : ⚠️ <u> RECHAZADO POR @ChumoGH </u> \n"
 bot_retorno+="$LINE\n"
 msj_fun
 sleep 1s
