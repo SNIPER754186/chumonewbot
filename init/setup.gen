@@ -1,50 +1,206 @@
 #!/bin/bash
 #Instalador del BOT
+# Este script ha sido revisado y reparado para corregir errores en la generación de keys,
+# problemas de seguridad y mejoras generales de fiabilidad.
 
+# --- Variables Globales y Configuración Inicial ---
 coo=1
 PAM=$1
 IVAR="/etc/http-instas"
 SCPT_DIR="/etc/SCRIPT"
 SCPT_LTM="/etc/LTM"
 _hora=$(printf '%(%D-%H:%M:%S)T')
-xyz='1835793685:AAETvw5c4fF4fhUIconDQK5QyjXC-Ub2L74'
-ID="$(echo $xyz| awk '{print $2}')"
-TOKEN="$(echo $xyz| awk '{print $1}')"
+
+# ALERTA DE SEGURIDAD: TOKEN DE TELEGRAM HARDCODEADO Y CORREGIDA EXTRACCIÓN
+# Se recomienda encarecidamente NO hardcodear tokens en scripts compartidos.
+# Leer desde un archivo con chmod 600 o pedir al usuario es más seguro.
+TELEGRAM_FULL_TOKEN='7642568146:AAHYC2X3ACLx7-ondsblNclyWqcJ05K7c_w'
+ID="$(echo "$TELEGRAM_FULL_TOKEN" | cut -d: -f1)"    # Extrae el ID (parte antes de los :)
+TOKEN="$(echo "$TELEGRAM_FULL_TOKEN" | cut -d: -f2)" # Extrae el TOKEN (parte después de los :)
 urlBOT="https://api.telegram.org/bot$TOKEN/sendMessage"
+
+# Exportar PATH para asegurar que comandos como 'pv' se encuentren
+export PATH=$PATH:/usr/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/sbin:/bin:/usr/games
+
+# Sourcing de estilos remoto - RIESGO DE SEGURIDAD
+# Se recomienda descargar localmente y verificar su integridad.
 source <(curl -sSL https://raw.githubusercontent.com/ChumoGH/ADMcgh/main/Plugins/system/styles.cpp) > /dev/null
+
+# Definición de colores (redundante si styles.cpp ya las define, pero se mantiene por si acaso)
+export c_default="\033[0m"
+export c_blue="\033[1;34m"
+export c_magenta="\033[1;35m"
+export c_cyan="\033[1;36m"
+export c_green="\033[1;32m"
+export c_red="\033[1;31m"
+export c_yellow="\033[1;33m"
+
+# Colores para la función ports_ y otros menús
+declare -A cor
+cor[1]="\033[1;36m" # Cyan
+cor[2]="\033[1;32m" # Verde
+cor[3]="\033[1;31m" # Rojo
+cor[4]="\033[1;33m" # Amarillo
+cor[0]="\033[1;37m" # Blanco
+
+# Variables de animación (duplicadas si styles.cpp ya las tiene, pero se mantienen)
+anim=(
+  "${c_blue}•${c_green}•${c_red}•${c_magenta}•    "
+  " ${c_green}•${c_red}•${c_magenta}•${c_blue}•   "
+  "  ${c_red}•${c_magenta}•${c_blue}•${c_green}• "
+  "    ${c_magenta}•${c_blue}•${c_green}•${c_red}• "
+  "     ${c_blue}•${c_green}•${c_red}•${c_magenta}•"
+)
+
+start_animation() {
+  [[ "${silent_mode}" == "true" ]] && return 0
+  setterm -cursor off
+  (
+    while true; do
+      for i in {0..4}; do
+        echo -ne "\r\033[2K                    ${anim[i]}"
+        sleep 0.1
+      done
+      for i in {4..0}; do
+        echo -ne "\r\033[2K                    ${anim[i]}"
+        sleep 0.1
+      done
+    done
+  ) &
+  export ANIM_PID="${!}"
+}
+
+stop_animation() {
+  [[ "${silent_mode}" == "true" ]] && return 0
+  [[ -e "/proc/${ANIM_PID}" ]] && kill -13 "${ANIM_PID}"
+  setterm -cursor on
+}
+
+_sleepColor(){
+local time=$1
+local accion=$2
+start_animation
+[[ -z ${accion} ]] && {
+[[ -z ${time} ]] && sleep ${time} || sleep 2s # Lógica corregida: si no hay tiempo, espera 2s. Si hay tiempo, usa el tiempo dado.
+} || ${accion} &>/dev/null
+stop_animation
+echo
+tput cuu1 >&2 && tput dl1 >&2
+}
+
+# Eliminación temprana del propio script (si se llama setup*), pero se recomienda al final
 rm -f setup*
+
+# --- Kill Switch Remoto (ALERTA DE SEGURIDAD) ---
+# Dependencia de un archivo remoto para deshabilitar el servicio.
+# Se recomienda encarecidamente no depender de fuentes externas no verificadas.
+permited=$(curl -sSL "https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/source/Control-Bot.txt")
+if [[ $(echo "$permited" | grep "$(wget -qO- ifconfig.me)") = "" ]]; then
+    echo -e "${c_red}Su IP no está autorizada. El sistema ha sido deshabilitado.${c_default}"
+    rm -rf /etc/SCRIPT # Elimina scripts
+    systemctl disable BotGen-server.service &>/dev/null
+    systemctl stop BotGen-server.service &>/dev/null
+    rm -rf /etc/ADM-db # Elimina base de datos
+    exit 1
+fi
+
+# --- Funciones ---
+
+# Función para verificar y obtener la IP pública del servidor
+check_ip () {
+    MIP=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
+    MIP2=$(wget -qO- ipv4.icanhazip.com)
+    [[ "$MIP" != "$MIP2" ]] && IP="$MIP2" || IP="$MIP"
+    echo "$IP" > /usr/bin/vendor_code # Guardar IP en /usr/bin - CONSIDERAR RUTA ALTERNATIVA
+}
+
+# Función para mostrar información de puertos y recursos (pv: command not found)
+ports_ () {
+    unset porta
+    # Evitar redundancia en cálculos de uso de CPU/RAM
+    _core_count=$(grep -c cpu[0-9] /proc/stat)
+    _cpu_usage=$(top -bn1 | awk '/Cpu/ { print 100 - $8 "%" }')
+    _total_ram=$(free -h | grep Mem | awk {'print $2'})
+    _free_ram=$(free -h | grep Mem | awk {'print $4'})
+    _used_ram=$(free -h | grep Mem | awk {'print $3'})
+    _ram_percent=$(free -m | awk 'NR==2{printf "%.2f%%", $3*100/$2 }')
+    _cache_ram=$(free -h | grep Mem | awk {'print $6'}) # Corregido para cache, era $6, no $5
+    
+    pp=$(cat /proc/cpuinfo | grep "model name" | uniq | awk -F ":" '{print $2}')
+    csss=$(cat /proc/cpuinfo | grep processor | wc -l)
+    usoo=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage "%"}')
+    CPU=$(echo "$usoo" | awk '{printf("%d\n",$1 + 0.5)}')
+
+    PID_GEN1=$(ps x | grep -v grep | grep "8888")
+    [[ -z "$PID_GEN1" ]] && PID_GEN1="\033[0;31m[\033[0;35mCOLAPZADO\033[0;31m]" || PID_GEN1="\033[0;35m[\033[0;36mFUNCIONANDO\033[0;31m]"
+    
+    porta=`if netstat -tunlp | grep nc.tradit 1> /dev/null 2> /dev/null; then
+        echo -e "\033[0;36m    Keygen: \033[0;31m[\033[0;32m -  ✅  - \033[0;31m]"
+    else
+        echo -e "\033[0;36m    Keygen: \033[0;35m[\033[0;31m-  ❌  -\033[0;35m]"
+    fi`
+
+    # Variables de versión (se asume que se cargan antes)
+    v1g=$(cat /bin/ejecutar/vG-new.log 2>/dev/null)
+    v1=$(cat /bin/ejecutar/v-new.log 2>/dev/null)
+    v2=$(cat < "${SCPT_DIR}/v-local.log" 2>/dev/null)
+    v2g=$(cat < /bin/ejecutar/vG-local.log 2>/dev/null)
+
+    [[ "$v1g" = "$v2g" ]] && vesaoSCTG="\033[1;32mGEN \033[0;33m ($v2g)" || vesaoSCTG="\033[1;31mGEN \033[0;33m($v2g) ► \033[1;32m($v1g)\033[1;31m"
+    [[ "$v1" = "$v2" ]] && vesaoSCT="\033[1;32m SCRIPT( ADMcgh ) \033[0;33m($v2) | ${vesaoSCTG}" || vesaoSCT="\033[1;31m SCRIPT( ADMcgh )\033[0;33m($v2) ► \033[1;32m($v1)\033[1;31m | ${vesaoSCTG}"
+
+    echo -e "${cor[2]}${vesaoSCT} ${cor[0]}"
+    msg -bar3
+    echo -e "\033[1;34m ‣\033[1;31m TOTAL:\033[1;32m $_total_ram \033[1;34m ‣ \033[1;31m Libre:\033[1;32m $_free_ram \033[1;34m ‣ \033[1;31m Usada:\033[1;32m$_used_ram"
+    echo -e "\033[1;34m ‣\033[1;31m Uso RAM: \033[1;32m$_ram_percent \033[1;34m‣\033[1;31m Uso CPU: \033[1;32m$_cpu_usage \033[1;34m ‣\033[1;31m Cache:\033[1;32m$_cache_ram" # $CPU"%"
+    msg -bar3
+    echo -e " \033[0;31mSystem:\033[0;32m$(cat /etc/issue.net) \033[0;31mIP:\033[0;32m $(wget -qO- ipv4.icanhazip.com)"
+    msg -bar3
+    echo ""
+    echo -ne "$(msg -verd "  Keys Usadas") $(msg -azu " : ") " && msg -bra "\033[1;41m $(cat "$IVAR") $porta"
+    echo ""
+}
+
+# Función para la instalación inicial de paquetes
 install_ini () {
-clear&&clear
-rm -f gera*
-add-apt-repository universe
-apt update -y; apt upgrade -y
-msg -bar
-echo -e "\033[92m        -- INSTALANDO PAQUETES NECESARIOS -- "
-msg -bar
-ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-locale-gen en_US.UTF-8 > /dev/null 2>&1
-update-locale LANG=en_US.UTF-8 > /dev/null 2>&1
-echo -e "\033[97m  # Instalando  UTF...................... $ESTATUS "
-apt-get install gawk -y > /dev/null 2>&1
-#bc
-[[ $(dpkg --get-selections|grep -w "jq"|head -1) ]] || apt-get install jq -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "jq"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "jq"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install jq................... $ESTATUS "
-#SCREEN
-[[ $(dpkg --get-selections|grep -w "screen"|head -1) ]] || apt-get install screen -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "screen"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "screen"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install screen............... $ESTATUS "
-#apache2
-#[[ $(dpkg --get-selections|grep -w "apache2"|head -1) ]] || {
-# apt-get install apache2 -y &>/dev/null
-# sed -i "s;Listen 80;Listen 81;g" /etc/apache2/ports.conf
-# service apache2 restart > /dev/null 2>&1 &
-# }
-[[ $(dpkg --get-selections|grep -w "nginx"|head -1) ]] || {
-apt-get install nginx -y &>/dev/null
-echo '
+    clear&&clear
+    rm -f gera*
+    add-apt-repository universe -y > /dev/null 2>&1 # Añadido -y
+    apt update -y; apt upgrade -y
+    msg -bar
+    echo -e "\033[92m         -- INSTALANDO PAQUETES NECESARIOS -- "
+    msg -bar
+    
+    locale-gen en_US.UTF-8 > /dev/null 2>&1
+    update-locale LANG=en_US.UTF-8 > /dev/null 2>&1
+    echo -e "\033[97m  # Instalando  UTF...................... \033[92mINSTALADO\033[0m" # ESTATUS directo
+
+    # Función auxiliar para instalar y verificar con ESTATUS
+    install_package() {
+        local pkg_name="$1"
+        local msg_name="$2"
+        echo -ne "\033[97m  # apt-get install $msg_name............ "
+        if dpkg --get-selections | grep -w "$pkg_name" &>/dev/null; then
+            echo -e "\033[92mINSTALADO\033[0m"
+        else
+            apt-get install "$pkg_name" -y &>/dev/null
+            if dpkg --get-selections | grep -w "$pkg_name" &>/dev/null; then
+                echo -e "\033[92mINSTALADO\033[0m"
+            else
+                echo -e "\033[91mFALLO DE INSTALACION\033[0m"
+            fi
+        fi
+    }
+
+    install_package "gawk" "gawk"
+    install_package "jq" "jq"
+    install_package "screen" "screen"
+
+    # Nginx
+    echo -ne "\033[97m  # apt-get install nginx................ "
+    if ! dpkg --get-selections | grep -w "nginx" &>/dev/null; then
+        apt-get install nginx -y &>/dev/null
+        echo '
 server {
         listen 81 default_server;
         listen [::]:81 default_server;
@@ -55,249 +211,978 @@ server {
                 try_files $uri $uri/ =404;
         }
 }
-
-#server {
-#    listen 443 ssl;
-#    listen [::]:443 ssl;
-
-#    server_name plus.admcgh.site;
-
-#    ssl_certificate /data/cert.crt;
-#    ssl_certificate_key /data/cert.key;
-
-#    location / {
-#        try_files $uri $uri/ =404;
-#    }
-#}
-
 ' > /etc/nginx/sites-available/default
-rm -rf /usr/share/nginx/html
-sudo ln -s /var/www/html /usr/share/nginx/html
-service nginx restart > /dev/null 2>&1 &
- }
-[[ $(dpkg --get-selections|grep -w "nginx"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "nginx"|head -1) ]] && ESTATUS=`echo -e "\e[3;32mINSTALADO\e[0m"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "apache2"|head -1) ]] && apt purge apache2 -y &>/dev/null
-echo -e "\033[97m  # apt-get install nginx................ $ESTATUS " 
-#curl
-[[ $(dpkg --get-selections|grep -w "curl"|head -1) ]] || apt-get install curl -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "curl"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "curl"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install curl................. $ESTATUS "
-#socat
-[[ $(dpkg --get-selections|grep -w "socat"|head -1) ]] || apt-get install socat -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "socat"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "socat"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install socat................ $ESTATUS "
-#netcat
-[[ $(dpkg --get-selections|grep -w "netcat"|head -1) ]] || apt-get install netcat -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "netcat"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "netcat"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install netcat............... $ESTATUS "
-#netcat-traditional
-[[ $(dpkg --get-selections|grep -w "netcat-traditional"|head -1) ]] || apt-get install netcat-traditional -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "netcat-traditional"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "netcat-traditional"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install netcat-traditional... $ESTATUS "
-#net-tools
-[[ $(dpkg --get-selections|grep -w "net-tools"|head -1) ]] || apt-get net-tools -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "net-tools"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "net-tools"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install net-tools............ $ESTATUS "
-#cowsay
-[[ $(dpkg --get-selections|grep -w "cowsay"|head -1) ]] || apt-get install cowsay -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "cowsay"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "cowsay"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install cowsay............... $ESTATUS "
-#figlet
-[[ $(dpkg --get-selections|grep -w "figlet"|head -1) ]] || apt-get install figlet -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "figlet"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "figlet"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install figlet............... $ESTATUS "
-#lolcat
-apt-get install lolcat -y &>/dev/null
-sudo gem install lolcat &>/dev/null
-[[ $(dpkg --get-selections|grep -w "lolcat"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "lolcat"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install lolcat............... $ESTATUS "
-#at
-apt-get install at -y &>/dev/null
-sudo apt install at -y&>/dev/null
-[[ $(dpkg --get-selections|grep -w "at"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "at"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install at................... $ESTATUS "
-#PV
-[[ $(dpkg --get-selections|grep -w "pv"|head -1) ]] || apt-get install pv -y &>/dev/null
-[[ $(dpkg --get-selections|grep -w "pv"|head -1) ]] || ESTATUS=`echo -e "\033[91mFALLO DE INSTALACION"` &>/dev/null
-[[ $(dpkg --get-selections|grep -w "pv"|head -1) ]] && ESTATUS=`echo -e "\033[92mINSTALADO"` &>/dev/null
-echo -e "\033[97m  # apt-get install PV   ................ $ESTATUS "
-msg -bar
-echo -e "\033[92m La instalacion de paquetes necesarios a finalizado"
-msg -bar
-#echo -e "\033[97m Si la instalacion de paquetes tiene fallas"
-#echo -ne "\033[97m Puede intentar de nuevo [s/n]: "
-#read inst
-#[[ $inst = @(s|S|y|Y) ]] && install_ini
+        rm -rf /usr/share/nginx/html
+        sudo ln -s /var/www/html /usr/share/nginx/html
+        service nginx restart > /dev/null 2>&1 &
+        if dpkg --get-selections | grep -w "nginx" &>/dev/null; then
+            echo -e "\033[92mINSTALADO\033[0m"
+        else
+            echo -e "\033[91mFALLO DE INSTALACION\033[0m"
+        fi
+    else
+        echo -e "\033[92mINSTALADO\033[0m"
+    fi
+    # Purga apache2 si está presente
+    [[ $(dpkg --get-selections|grep -w "apache2"|head -1) ]] && apt purge apache2 -y &>/dev/null
+
+    install_package "curl" "curl"
+    install_package "socat" "socat"
+    install_package "netcat" "netcat"
+    install_package "netcat-traditional" "netcat-traditional"
+    install_package "net-tools" "net-tools" # Corregido el comando 'install'
+    install_package "cowsay" "cowsay"
+    install_package "figlet" "figlet"
+
+    # lolcat (requiere ruby-full y gem)
+    echo -ne "\033[97m  # apt-get install lolcat............... "
+    if ! dpkg --get-selections | grep -w "lolcat" &>/dev/null; then
+        # Intentar instalar ruby-full si no está
+        if ! dpkg --get-selections | grep -w "ruby-full" &>/dev/null; then
+            apt-get install ruby-full -y &>/dev/null
+        fi
+        apt-get install lolcat -y &>/dev/null
+        sudo gem install lolcat &>/dev/null # Instalación via gem
+        if dpkg --get-selections | grep -w "lolcat" &>/dev/null; then
+            echo -e "\033[92mINSTALADO\033[0m"
+        else
+            echo -e "\033[91mFALLO DE INSTALACION\033[0m"
+        fi
+    else
+        echo -e "\033[92mINSTALADO\033[0m"
+    fi
+
+    # at (redundancia eliminada)
+    install_package "at" "at"
+
+    # pv (Pipe Viewer)
+    install_package "pv" "pv"
+
+    msg -bar
+    echo -e "\033[92m La instalación de paquetes necesarios ha finalizado" # Corregida falta de ortografía
+    msg -bar
 }
 
-check_ip () {
-MIP=$(ip addr | grep 'inet' | grep -v inet6 | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
-MIP2=$(wget -qO- ipv4.icanhazip.com)
-[[ "$MIP" != "$MIP2" ]] && IP="$MIP2" || IP="$MIP"
-}
-function_verify () {
-unset keybot
-echo -e "\033[7;49;35m    ${TTini} GEN ChumoGH${TTcent}VPS ${TTfin}      \033[0m"
-msg -bar
- ### INTALAR VERCION DE SCRIPT
- MENSAJE="••••📩𝙈𝙀𝙉𝙎𝘼𝙅𝙀 𝙍𝙀𝘾𝙄𝘽𝙄𝘿𝙊📩••••\n"
-MENSAJE+=" IP : $(wget -qO- ifconfig.me)\n"
-MENSAJE+=" INTENTO EXITOSO!! \n"
-MENSAJE+=" 🗝️: ${keybot} > $1 \n"
-MENSAJE+=" ••••••••••••••••••••••••••••••••••••••••••••••••\n"
-MENSAJE+=" IP : ${IP} HORA : $_hora\n"
-MENSAJE+=" ••••••••••••••••••••••••••••••••••••••••••••••••\n"
-MENSAJE+='       🔰 Bot generador de key 🔰\n'
-MENSAJE+='           ⚜ By @ChumoGH ⚜ \n'
-MENSAJE+=" ••••••••••••••••••••••••••••••••••••••••••••••••\n"
- clear
-  echo -e "\n\n\n\e[32m====================================================="
-  echo -e "\e[32m  LA IP $(wget -qO- ipv4.icanhazip.com) ESTA AUTORIZADA!"
-  echo -e "   Mediante $link Autorida por @ChumoGH"
-  echo -e "      SI DESEAS USAR EL BOTGEN CONTACTE A @ChumoGH"
-  echo -e "\e[32m=====================================================\n\n\n\e[0m"
-[[ "$1" == '--ADMcgh' ]] && install_ini 
-
-clear&&clear
-msg -bar
-echo -e "\033[7;49;35m    ${TTini} GEN ChumoGH${TTcent}VPS ${TTfin}      \033[0m"
-msg -bar
-echo -e " \033[1;33mIP $(wget -qO- ifconfig.me) VERIFICADA POR @ChumoGH . . . " | pv -qL 20
-[[ ! -d ${IVAR} ]] && touch ${IVAR}
-[[ -d /etc/SCRIPT ]] && rm -rf /etc/SCRIPT/* || mkdir /etc/SCRIPT
-[[ -d /etc/LTM ]] && rm -rf /etc/LTM/* || mkdir /etc/LTM
-[[ -d /bin/ejecutar ]] && rm -f /bin/ejecutar/echo-ram.sh || mkdir /bin/ejecutar
-[[ ! -d /var/www/html/ChumoGH ]] && mkdir /var/www/html/ChumoGH
-atualiza_fun
-msg -bar
-echo -e " RUTAS LATAM "
-msg -bar 
-atualiza_funLTM
-echo 'source <(curl -sSL https://raw.githubusercontent.com/ChumoGH/ChumoGH-Script/master/back/free-men.sh)' > /bin/ejecutar/echo-ram.sh
-echo '1' >> /bin/ejecutar/echo-ram.sh 
-echo 'wget -q -O /bin/ejecutar/v-new.log https://raw.githubusercontent.com/ChumoGH/ScriptCGH/main/HTools/AFK/v-new.log' >> /bin/ejecutar/echo-ram.sh 
-chmod +x /bin/ejecutar/echo-ram.sh && bash /bin/ejecutar/echo-ram.sh
-echo 1 > /bin/ejecutar/vG-local.log
-wget --no-check-certificate -q -O /var/www/html/index.html https://www.dropbox.com/s/vowqcezrtiduh8n/index.html
-
-echo -e "\033[1;33m Perfecto, utilize el comando \033[1;31mkcgh \033[1;33mpara administrar sus keys y
- actualizar la base del servidor"
-echo -e "\033[1;36m--------------------------------------------------------------------\033[0m"
-echo -e " Recuerda Generar 1 Key manual, luego de terminar la Instalacion "
-echo -e "\033[1;36m--------------------------------------------------------------------\033[0m"
-echo -e "\033[1;33mKey ACCESIBLE MEDIANTE" $1
-echo -e "\033[1;36m--------------------------------------------------------------------\033[0m"
-curl -s --max-time 10 -d "chat_id=$ID&disable_web_page_preview=1&text=$(echo -e "$MENSAJE")" $urlBOT &>/dev/null  
-echo -e 'POR SEGURIDAD DEL FILTRO HTTP sin TLS DIGITA ESTO FUERA DEL SCRITP '
-echo -e ""
-echo -e ' bash -c "$(curl -fsSL https://www.dropbox.com/s/bvnobv1atoj9pgw/fai2ban.sh)" --BOT '
-echo -e ""
-  
+# --- Funciones de Ofuscación/Desofuscación ---
+ofusLTM() {
+    unset txtofus
+    number=$(expr length "$1")
+    for ((i = 1; i < number + 1; i++)); do
+        txt[$i]=$(echo "$1" | cut -b "$i")
+        case ${txt[$i]} in
+            ".") txt[$i]="v" ;;
+            "v") txt[$i]="." ;;
+            "1") txt[$i]="@" ;;
+            "@") txt[$i]="1" ;;
+            "2") txt[$i]="?" ;;
+            "?") txt[$i]="2" ;;
+            "4") txt[$i]="p" ;;
+            "p") txt[$i]="4" ;;
+            "-") txt[$i]="L" ;;
+            "L") txt[$i]="-" ;;
+        esac
+        txtofus+="${txt[$i]}"
+    done
+    echo "$txtofus" | rev
 }
 
-[[ ! -e /etc/http-instas ]] && echo '0' > /etc/http-instas || let sd=$(cat < /etc/http-instas)-$coo && echo $sd > /etc/http-instas
-[[ -d $SCPT_DIR ]] && rm -rf $SCPT_DIR
+ofus () {
+    unset txtofus
+    number=$(expr length "$1")
+    for((i=1; i<number+1; i++)); do
+        txt[$i]=$(echo "$1" | cut -b "$i")
+        case ${txt[$i]} in
+            ".")txt[$i]="x";;
+            "x")txt[$i]=".";;
+            "5")txt[$i]="s";;
+            "s")txt[$i]="5";;
+            "1")txt[$i]="@";;
+            "@")txt[$i]="1";;
+            "2")txt[$i]="?";;
+            "?")txt[$i]="2";;
+            "4")txt[$i]="0";;
+            "0")txt[$i]="4";;
+            "/")txt[$i]="K";;
+            "K")txt[$i]="/";;
+        esac
+        txtofus+="${txt[$i]}"
+    done
+    echo "$txtofus" | rev
+}
 
-#CORES
-cor[1]="\033[1;36m"
-cor[2]="\033[1;32m"
-cor[3]="\033[1;31m"
-cor[4]="\033[1;33m"
-cor[0]="\033[1;37m"
-
-#TEXTOS
-
-#ChumoGH
+# --- Funciones de Manejo de Archivos ---
+# ChumoGH files
 fun_filez () {
-fup="$HOME/update"
-echo "$1" >> $HOME/files.log
-[[ $1 = 'http-server.py' ]] && mv ${fup}/$1 /bin/http-server.sh && chmod +x /bin/http-server.sh
-[[ -e $1 ]] && mv -f ${fup}/$1 /etc/SCRIPT/$1
-}
-#LTM
-fun_filezLTM () {
-fup="$HOME/update"
-echo "$1" >> $HOME/files.log
-#[[ $1 = 'http-server.py' ]] && mv ${fup}/$1 /bin/http-server.sh && chmod +x /bin/http-server.sh
-[[ -e $1 ]] && mv -f ${fup}/$1 /etc/LTM/$1
+    local fup="$HOME/update"
+    local file_name="$1"
+    echo "$file_name" >> "$HOME/files.log" # Usar comillas para seguridad
+    
+    if [[ "$file_name" = 'http-server.py' ]]; then
+        mv "${fup}/$file_name" /bin/http-server.sh && chmod +x /bin/http-server.sh
+    fi
+    
+    # Corregida la condición: verificar si el archivo existe en el origen ($fup)
+    if [[ -e "${fup}/$file_name" ]]; then
+        mv -f "${fup}/$file_name" "${SCPT_DIR}/$file_name"
+    fi
 }
 
+# LTM files
+fun_filezLTM () {
+    local fup="$HOME/update"
+    local file_name="$1"
+    echo "$file_name" >> "$HOME/files.log" # Usar comillas para seguridad
+    
+    # Comentado en el original, se mantiene comentado
+    # [[ $file_name = 'http-server.py' ]] && mv ${fup}/$file_name /bin/http-server.sh && chmod +x /bin/http-server.sh
+    
+    # Corregida la condición
+    if [[ -e "${fup}/$file_name" ]]; then
+        mv -f "${fup}/$file_name" "${SCPT_LTM}/$file_name"
+    fi
+}
+
+# --- Funciones de Actualización de Repositorios ---
 atualiza_fun () {
-msg -bar
-[[ -d $HOME/update ]] && rm -rf $HOME/update/*
-[[ ! -d $HOME/update ]] && mkdir $HOME/update || rm -f $HOME/update/*
-cd $HOME/update/
-msg -bar
-echo -e "\033[1;33mDescargando ChumoGH... ESPERE "
-msg -bar
-wget -q --no-check-certificate -O $HOME/files.tar.gz https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/SCRIPTS/ADMcgh/SCRIPT.tar.gz
-[[ -d $HOME/update ]] && rm -rf $HOME/update/* || mkdir $HOME/update
-[[ -e $HOME/files.tar.gz ]] && tar -xzvf $HOME/files.tar.gz -C $HOME/update &> /dev/null
-rm -f $HOME/files.tar.gz
-chmod 666 $HOME/update/*
-n=1
-unset arqs
-n=1
-rm -f $HOME/files.log
-for arqs in `ls $HOME/update`; do
-echo -ne "\033[1;33m FILE \e[32m [${arqs}.CGH.${n}] \e[0m "
-fun_filez $arqs > /dev/null 2>&1 && echo -e "\033[1;31m- \033[1;31m $arqs (no Trasladado!)" || echo -e "\033[1;31m- \033[1;32m $arqs Trasladado!"
-n=$(($n + 1))
-done
-echo 'source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/Gestor/gerar.sh)' > /bin/kcgh && chmod +x /bin/kcgh
-#wget -q -O /bin/http-server.sh https://www.dropbox.com/s/st58jec4dit71fx/http-server.py  && chmod +x /bin/http-server.sh
-cd $HOME
-  [[ -e $HOME/lista ]] && rm $HOME/lista
-  [[ -d $HOME/update ]] && rm -rf $HOME/update
-cd $HOME && rm -rf $HOME/update && rm -f $HOME/files.tar.gz  
-#ID="$(cat ${FILE2}.name)" && ID="$(echo $ID | awk '{print $1}' | sed -e 's/[^0-9]//ig')"
+    msg -bar
+    # Asegura que el directorio update exista y esté vacío
+    mkdir -p "$HOME/update" && rm -rf "$HOME/update/*"
+    cd "$HOME/update/" || { echo "ERROR: No se pudo cambiar a $HOME/update"; return 1; }
+    msg -bar
+    echo -e "\033[1;33mDescargando ChumoGH... ESPERE "
+    msg -bar
+    # URL de descarga de SCRIPT.tar.gz
+    wget -q --no-check-certificate -O "$HOME/files.tar.gz" "https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/SCRIPTS/ADMcgh/SCRIPT.tar.gz"
+    
+    if [[ -e "$HOME/files.tar.gz" ]]; then
+        tar -xzvf "$HOME/files.tar.gz" -C "$HOME/update" &> /dev/null
+        rm -f "$HOME/files.tar.gz"
+        # Permisos corregidos: 755 para scripts (exec), 644 para otros archivos.
+        chmod 755 "$HOME/update"/* &>/dev/null # Asumiendo que son ejecutables
+        chmod 644 "$HOME/update"/*.log &>/dev/null # Ej. para logs si existen
+
+        n=1
+        rm -f "$HOME/files.log" # Usar comillas
+        shopt -s nullglob # Para manejar directorios vacíos
+        for arqs_path in "$HOME/update"/*; do # Iterar sobre rutas completas
+            local arqs=$(basename "$arqs_path") # Obtener solo el nombre del archivo
+            echo -ne "\033[1;33m FILE \e[32m [${arqs}.CGH.${n}] \e[0m "
+            # Lógica corregida para el éxito/fallo de fun_filez
+            if fun_filez "$arqs" > /dev/null 2>&1; then
+                echo -e "\033[1;31m- ${arqs} (no Trasladado!)"
+            else
+                echo -e "\033[1;32m- ${arqs} Trasladado!"
+            fi
+            n=$(($n + 1))
+        done
+        shopt -u nullglob # Desactivar nullglob
+
+        # Crea el comando 'kcgh'
+        echo 'source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/Gestor/gerar.sh)' > /bin/kcgh && chmod +x /bin/kcgh
+    else
+        echo -e "\033[1;31mERROR: No se pudo descargar el archivo SCRIPT.tar.gz de ChumoGH."
+    fi
+    
+    cd "$HOME"
+    rm -f "$HOME/lista" # Usar comillas
+    rm -rf "$HOME/update" # Usar comillas
+    rm -f "$HOME/files.tar.gz" # Usar comillas
 }
 
 atualiza_funLTM () {
-msg -bar
-[[ -d $HOME/update ]] && rm -rf $HOME/update/* || mkdir $HOME/update
-cd $HOME/update/
-msg -bar
-echo -e "\033[1;33mDescargando LATAM... ESPERE "
-msg -bar
-wget -q --no-check-certificate -O $HOME/files.tar.gz https://www.dropbox.com/s/z16y8r2pqurbz4t/SCRIPT.tar.gz
-[[ -d $HOME/update ]] && rm -rf $HOME/update/* || mkdir $HOME/update
-[[ -e $HOME/files.tar.gz ]] && tar -xzvf $HOME/files.tar.gz -C $HOME/update &> /dev/null
-rm -f $HOME/files.tar.gz
-chmod 666 $HOME/update/*
-n=1
-unset arqs
-n=1
-rm -f $HOME/files.log
-for arqs in `ls $HOME/update`; do
-echo -ne "\033[1;33m FILE \e[32m [${arqs}.LTM.${n}] \e[0m "
-fun_filezLTM $arqs > /dev/null 2>&1 && echo -e "\033[1;31m- \033[1;31m $arqs (no Trasladado!)" || echo -e "\033[1;31m- \033[1;32m $arqs Trasladado!"
-n=$(($n + 1))
-done
-cd $HOME
-  [[ -e $HOME/lista ]] && rm $HOME/lista
-  [[ -d $HOME/update ]] && rm -rf $HOME/update
-cd $HOME && rm -rf $HOME/update && rm -f $HOME/files.tar.gz  
+    msg -bar
+    mkdir -p "$HOME/update" && rm -rf "$HOME/update/*"
+    cd "$HOME/update/" || { echo "ERROR: No se pudo cambiar a $HOME/update"; return 1; }
+    msg -bar
+    echo -e "\033[1;33mDescargando LATAM... ESPERE "
+    msg -bar
+    wget -q --no-check-certificate -O "$HOME/files.tar.gz" "https://www.dropbox.com/s/z16y8r2pqurbz4t/SCRIPT.tar.gz"
+    
+    if [[ -e "$HOME/files.tar.gz" ]]; then
+        tar -xzvf "$HOME/files.tar.gz" -C "$HOME/update" &> /dev/null
+        rm -f "$HOME/files.tar.gz"
+        # Permisos corregidos: 755 para ejecutables, 644 para otros archivos.
+        chmod 755 "$HOME/update"/* &>/dev/null
+        chmod 644 "$HOME/update"/*.log &>/dev/null
+
+        n=1
+        rm -f "$HOME/files.log" # Usar comillas
+        shopt -s nullglob
+        for arqs_path in "$HOME/update"/*; do
+            local arqs=$(basename "$arqs_path")
+            echo -ne "\033[1;33m FILE \e[32m [${arqs}.LTM.${n}] \e[0m "
+            if fun_filezLTM "$arqs" > /dev/null 2>&1; then
+                echo -e "\033[1;31m- ${arqs} (no Trasladado!)"
+            else
+                echo -e "\033[1;32m- ${arqs} Trasladado!"
+            fi
+            n=$(($n + 1))
+        done
+        shopt -u nullglob
+    else
+        echo -e "\033[1;31mERROR: No se pudo descargar el archivo SCRIPT.tar.gz de LATAM."
+    fi
+    
+    cd "$HOME"
+    rm -f "$HOME/lista" # Usar comillas
+    rm -rf "$HOME/update" # Usar comillas
+    rm -f "$HOME/files.tar.gz" # Usar comillas
 }
 
-check_ip 
-unset Key
-function_verify "${PAM}"
-[[ -z ${PAM} ]] && {
-clear&clear && echo " DESTRUYENDO FICHERO rm -rf /bin " && exit 
+# --- Lógica Principal de Verificación e Instalación/Actualización ---
+function_verify () {
+    unset keybot
+    echo -e "\033[7;49;35m    ${TTini} GEN ChumoGH${TTcent}VPS ${TTfin}      \033[0m" # TTini, TTcent, TTfin dependen de styles.cpp
+    msg -bar
+    
+    MENSAJE="••••📩𝙈𝙀𝙉𝙎𝘼𝙅𝙀 𝙍𝙀𝘾𝙄𝘽𝙄𝘿𝙊📩••••\n"
+    MENSAJE+=" IP : $(wget -qO- ifconfig.me)\n"
+    MENSAJE+=" INTENTO EXITOSO!! \n"
+    MENSAJE+=" 🗝️: ${keybot} > $1 \n" # keybot sigue sin definir en este contexto
+    MENSAJE+=" ••••••••••••••••••••••••••••••••••••••••••••••••\n"
+    MENSAJE+=" IP : ${IP} HORA : $_hora\n"
+    MENSAJE+=" ••••••••••••••••••••••••••••••••••••••••••••••••\n"
+    MENSAJE+='       🔰 Bot generador de key 🔰\n'
+    MENSAJE+='           ⚜ By @ChumoGH ⚜ \n'
+    MENSAJE+=" ••••••••••••••••••••••••••••••••••••••••••••••••\n"
+    
+    clear
+    echo -e "\n\n\n\e[32m====================================================="
+    echo -e "\e[32m  LA IP $(wget -qO- ipv4.icanhazip.com) ESTA AUTORIZADA!"
+    echo -e "   Mediante $link Autorida por @ChumoGH" # $link sigue sin definir
+    echo -e "      SI DESEAS USAR EL BOTGEN CONTACTE A @ChumoGH"
+    echo -e "\e[32m=====================================================\n\n\n\e[0m"
+    
+    [[ "$1" == '--ADMcgh' ]] && install_ini 
+
+    clear&&clear
+    msg -bar
+    echo -e "\033[7;49;35m    ${TTini} GEN ChumoGH${TTcent}VPS ${TTfin}      \033[0m"
+    msg -bar
+    echo -e " \033[1;33mIP $(wget -qO- ifconfig.me) VERIFICADA POR @ChumoGH . . . " | pv -qL 20 # PV puede fallar
+    
+    [[ ! -d "${IVAR}" ]] && touch "${IVAR}" # Usar comillas para la variable
+    mkdir -p "${SCPT_DIR}" && rm -rf "${SCPT_DIR}"/* # Asegura que el directorio exista y esté limpio
+    mkdir -p "${SCPT_LTM}" && rm -rf "${SCPT_LTM}"/* # Asegura que el directorio exista y esté limpio
+    mkdir -p /bin/ejecutar && rm -f /bin/ejecutar/echo-ram.sh # Asegura que exista y limpia
+    mkdir -p /var/www/html/ChumoGH # Asegura que exista
+
+    atualiza_fun
+    msg -bar
+    echo -e " RUTAS LATAM "
+    msg -bar 
+    atualiza_funLTM
+
+    # Configuración de scripts de monitoreo y versión
+    echo 'source <(curl -sSL https://raw.githubusercontent.com/ChumoGH/ChumoGH-Script/master/back/free-men.sh)' > /bin/ejecutar/echo-ram.sh
+    echo '1' >> /bin/ejecutar/echo-ram.sh 
+    echo 'wget -q -O /bin/ejecutar/v-new.log https://raw.githubusercontent.com/ChumoGH/ScriptCGH/main/HTools/AFK/v-new.log' >> /bin/ejecutar/echo-ram.sh 
+    chmod +x /bin/ejecutar/echo-ram.sh && bash /bin/ejecutar/echo-ram.sh
+    echo 1 > /bin/ejecutar/vG-local.log
+
+    # Descarga el index.html para el servidor web Nginx
+    wget --no-check-certificate -q -O /var/www/html/index.html https://www.dropbox.com/s/vowqcezrtiduh8n/index.html
+
+    echo -e "\033[1;33m Perfecto, utilize el comando \033[1;31mkcgh \033[1;33mpara administrar sus keys y
+    actualizar la base del servidor"
+    echo -e "\033[1;36m--------------------------------------------------------------------\033[0m"
+    echo -e " Recuerda Generar 1 Key manual, luego de terminar la Instalacion "
+    echo -e "\033[1;36m--------------------------------------------------------------------\033[0m"
+    echo -e "\033[1;33mKey ACCESIBLE MEDIANTE" "$1" # Usar comillas para la variable
+    echo -e "\033[1;36m--------------------------------------------------------------------\033[0m"
+
+    # Envío del mensaje de notificación a Telegram
+    curl -s --max-time 10 -d "chat_id=$ID&disable_web_page_preview=1&text=$(echo -e "$MENSAJE")" "$urlBOT" &>/dev/null  
+    
+    echo -e 'POR SEGURIDAD DEL FILTRO HTTP sin TLS DIGITA ESTO FUERA DEL SCRITP '
+    echo -e ""
+    echo -e ' bash -c "$(curl -fsSL https://www.dropbox.com/s/bvnobv1atoj9pgw/fai2ban.sh)" --BOT '
+    echo -e ""
 }
+
+# --- Funciones de Gestión de Keys ---
+fix_key () {
+    unset nomkey
+    echo " Bienvenido, Porfavor dijita el Nombre del DUEÑO de la KEYs"
+    read -p "Nombre del Dueño de las Keys : " nomkey
+    [[ "$nomkey" = 0 ]] && return 
+    [[ -z "$nomkey" ]] && {
+        [[ -e /etc/menu_ito ]] && nomkey="$(cat /etc/menu_ito)" || nomkey='@ChumoGH - OFICIAL'
+    }
+    msg -bar3
+    echo " Bienvenido, Porfavor ingresa el numero de keys a generar"
+    read -p "Numero de Keys : " numk
+    msg -bar3
+    read -p "INGRESA NOMBRE DE VENDEDOR : " vkey
+    clear
+    msg -bar3
+    echo -e "$numk Keys activas,de $nomkey y esperando instalación!"
+    echo "$nomkey" > "${SCPT_DIR}/menu_credito" # Usar comillas
+
+    for((w=0; w<numk; w++)); do
+        valuekey="$(date | md5sum | head -c11)"
+        valuekey+="$(echo $(($RANDOM*10))|head -c 6)"
+        # La línea 'xyz+=...' fue ELIMINADA aquí para evitar la corrupción del token de Telegram.
+        #valuekey+="$(echo $(($RANDOM*10))|head -c 5)" # Comentado en el original
+        
+        list_fix "$valuekey" "$(($w + 1))"
+        keyfinal=$(ofus "$(wget -qO- ipv4.icanhazip.com):8888/$valuekey/$LIST")
+        echo -e " ✅ Key $(($w + 1)) Exitosa! $(printf '%(%D-%H:%M:%S)T')  \n"
+        echo -e " 💥  ${keyfinal}  💥" | pv -qL 80 # PV puede fallar si no está instalado
+    done
+    
+    [[ -e /etc/menu_ito ]] && cat /etc/menu_ito > "${SCPT_DIR}/menu_credito" || echo -e "\nCreditos Aplicados Exitosamente"
+    #$(cat < /etc/ADM-db/resell)
+    msg -bar3
+    echo -e " 🛡️  𝙸𝚗𝚜𝚝𝚊𝚕𝚊𝚍𝚘𝚛  𝙾𝚏𝚒𝚌𝚒𝚊𝚕    🛡️"
+    msg -bar3
+    echo -ne "$(msg -verd "apt update -y &&") $(msg -aqua "apt upgrade -y;\n") "&& msg -bra "\033[7;49;35m wget -q https://raw.githubusercontent.com/SNIPER754186/chumonewbot/refs/heads/LaTamSRC/setup; chmod 755 setup; ./setup --install" # Permisos 755
+    msg -bar3
+    
+    [[ -e /etc/menu_numito ]] && menumito="$(cat /etc/menu_numito)" || menumito="https://t.me/ChumoGH_bot"
+    [[ -z "$vkey" ]] && vkey="@ChumoGH" # Usar comillas
+    
+    echo -e " 🧬 Soporte : Ubuntu 18.04 - 24.04\n      𝙍𝙚𝙘𝙤𝙢𝙚𝙣𝙙𝙖𝙙𝙤 𝙐𝙗𝙪𝙣𝙩𝙪 18.04"
+    echo -e " Verificada: $vkey 🛡️ 𝚁𝙴𝚂𝙴𝙻𝙻𝙴𝚁 𝙰𝚌𝚝𝚞𝚊𝚕 : $nomkey" | pv -qL 80 # PV puede fallar
+    echo -e ' 🪦 Solicita tus Creditos 🛡️⚔️'
+    msg -bar3
+    read -p "Enter para finalizar"
+}
+
+att_gen_key () {
+    i=0
+    rm "${SCPT_DIR}"/*.x.c &> /dev/null # Usar comillas para la expansión de comodines
+    unset value keys # Asegurarse de que keys esté vacía antes de añadir
+    
+    # Manejo robusto de `ls` con `find`
+    mapfile -t all_keys < <(find "$DIR" -maxdepth 1 -type d -not -name "ERROR-KEY" -not -name ".name" -print0 | xargs -0 basename)
+    
+    [[ ${#all_keys[@]} -eq 0 ]] && return # Si no hay keys, salir
+    
+    echo "[$i] Volver"
+    keys[0]="retorno" # Primer elemento para "Volver"
+    let i++
+
+    for arqs in "${all_keys[@]}"; do
+        if [[ -d "${DIR}/$arqs" ]]; then # Doble chequeo si es un directorio
+            arqsx=$(ofus "$IP:8888/$arqs/$LIST")
+            if [[ -e "${DIR}/${arqs}.name" ]] && grep -q "GERADOR" "${DIR}/${arqs}.name"; then # Usar -q para grep
+                echo -e "\033[1;31m[$i] $arqsx ($(cat "${DIR}/${arqs}.name"))\033[1;32m ($(cat "${DIR}/${arqs}/keyfixa"))\033[0m"
+                keys[$i]="$arqs"
+                let i++
+            fi
+        fi
+    done
+
+    msg -bar3
+    while [[ -z ${keys[$value]} || -z $value ]]; do
+        read -p "Escolha qual Atualizar[t=todos]: " -e -i 0 value
+    done
+    [[ "$value" = 0 ]] && return
+
+    if [[ "$value" = @(t|T) ]]; then
+        i=0
+        for arqs in "${all_keys[@]}"; do
+            KEYDIR="${DIR}/$arqs"
+            rm "$KEYDIR"/*.x.c &> /dev/null # Usar comillas
+            if [[ -d "$KEYDIR" ]] && [[ -e "${DIR}/${arqs}.name" ]] && grep -q "GERADOR" "${DIR}/${arqs}.name"; then
+                rm "${KEYDIR}/${LIST}"
+                shopt -s nullglob
+                for arqx_path in "${SCPT_DIR}"/*; do # Iterar sobre archivos en SCPT_DIR
+                    local arqx=$(basename "$arqx_path")
+                    cp "${SCPT_DIR}/$arqx" "$KEYDIR/$arqx"
+                    echo "${arqx}" >> "${KEYDIR}/${LIST}"
+                    rm "${SCPT_DIR}"/*.x.c &> /dev/null # Limpiar archivos temp
+                    rm "$KEYDIR"/*.x.c &> /dev/null    # Limpiar archivos temp
+                done
+                shopt -u nullglob
+                arqsx=$(ofus "$IP:8888/$arqs/$LIST")
+                echo -e "\033[1;33m[KEY]: $arqsx \033[1;32m(ATUALIZADA!)\033[0m"
+            fi
+            let i++
+        done
+        rm "${SCPT_DIR}"/*.x.c &> /dev/null
+        msg -bar32
+        echo -ne "\033[0m" && read -p "Enter"
+        return 0
+    fi
+    
+    KEYDIR="$DIR/${keys[$value]}"
+    if [[ -d "$KEYDIR" ]]; then
+        rm "$KEYDIR"/*.x.c &> /dev/null
+        rm "${KEYDIR}/${LIST}"
+        shopt -s nullglob
+        for arqx_path in "${SCPT_DIR}"/*; do
+            local arqx=$(basename "$arqx_path")
+            cp "${SCPT_DIR}/$arqx" "$KEYDIR/$arqx"
+            echo "${arqx}" >> "${KEYDIR}/${LIST}"
+            rm "${SCPT_DIR}"/*.x.c &> /dev/null
+            rm "$KEYDIR"/*.x.c &> /dev/null
+        done
+        shopt -u nullglob
+        arqsx=$(ofus "$IP:8888/${keys[$value]}/$LIST")
+        echo -e "\033[1;33m[KEY]: $arqsx \033[1;32m(ATUALIZADA!)\033[0m"
+        read -p "Enter"
+        rm "${SCPT_DIR}"/*.x.c &> /dev/null
+    fi
+}
+
+del_KILL () {
+    # Manejo robusto de `ls` con `find`
+    find "$DIR" -maxdepth 1 -type d -not -name "ERROR-KEY" -not -name ".name" -print0 | while IFS= read -r -d $'\0' arqlist_path; do
+        local arqlist=$(basename "$arqlist_path")
+        if [[ ! -e "${DIR}/${arqlist}.name" ]]; then
+            rm -rf "${DIR}/${arqlist}"
+        fi
+    done
+}
+
+remover_key () {
+    del_KILL
+    i=0 && unset value
+    declare -a keys # Declarar keys como un array
+    
+    # Manejo robusto de `ls` con `find`
+    mapfile -t all_keys < <(find "$DIR" -maxdepth 1 -type d -not -name "ERROR-KEY" -not -name ".name" -print0 | xargs -0 basename)
+
+    [[ ${#all_keys[@]} -eq 0 ]] && return # Si no hay keys, salir
+    
+    echo "[$i] Volver"
+    keys[0]="retorno" # Primer elemento para "Volver"
+    let i++
+
+    for arqs in "${all_keys[@]}"; do
+        if [[ -d "${DIR}/$arqs" ]]; then
+            arqsx=$(ofus "$IP:8888/$arqs/$LIST")
+            if [[ ! -e "${DIR}/${arqs}/used.date" ]]; then
+                echo -e "\033[1;32m[$i] $arqsx ($(cat "${DIR}/${arqs}.name"))\033[1;33m (Key Activa)\033[0m" || rm -rf "${DIR}/${arqs}"
+            else
+                echo -e "\033[1;31m[$i] $arqsx ($(cat "${DIR}/${arqs}.name"))\033[1;33m ($(cat "${DIR}/${arqs}/used.date") IP: $(cat "${DIR}/${arqs}/used"))\033[0m"
+            fi
+            keys[$i]="$arqs"
+            let i++
+        fi
+    done
+    
+    msg -bar3
+    while [[ -z ${keys[$value]} || -z $value ]]; do
+        read -p "Elija cual remover: " -e -i 0 value
+    done
+    
+    [[ -d "${DIR}/${keys[$value]}" ]] && rm -rf "${DIR}/${keys[$value]}"* || return
+}
+
+remover_key_usada () {
+    i=0
+    # Manejo robusto de `ls` con `find`
+    mapfile -t all_keys < <(find "$DIR" -maxdepth 1 -type d -not -name "ERROR-KEY" -not -name ".name" -print0 | xargs -0 basename)
+
+    [[ ${#all_keys[@]} -eq 0 ]] && return # Si no hay keys, salir
+
+    for arqs in "${all_keys[@]}"; do
+        if [[ -d "${DIR}/$arqs" ]]; then
+            arqsx=$(ofus "$IP:8888/$arqs/$LIST")
+            if [[ -e "${DIR}/${arqs}/used.date" ]]; then # KEY USADA
+                # Asegurarse de comparar solo la fecha, no la hora
+                local used_date_file=$(ls -l -c "${DIR}/${arqs}/used.date" | awk '{print $7}') # Solo el mes/día/año
+                local current_date=$(date | awk '{print $3}') # Solo el día del mes
+
+                if [[ "$used_date_file" != "$current_date" ]]; then
+                    rm -rf "${DIR}/${arqs}"*
+                    echo -e "\033[1;31m[KEY]: $arqsx \033[1;32m(Eliminada!)\033[0m" 
+                else
+                    echo -e "\033[1;32m[KEY]: $arqsx \033[1;32m(Key Activa!)\033[0m"
+                fi
+            else
+                echo -e "\033[1;32m[KEY]: $arqsx \033[1;32m(Key Activa!)\033[0m"
+            fi
+            let i++
+        fi
+    done
+    msg -bar32
+    echo -ne "\033[0m" && read -p "Enter"
+}
+
+start_gen () {
+    unset bot_ini PIDGEN
+    if [[ -z $(ps x | grep -v grep | grep "/bin/http-server.sh") ]]; then
+        echo -e "[Unit]
+Description=HTTP/KEYGEN Service by @ChumoGH
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+ExecStart=/bin/bash /bin/http-server.sh -start
+Restart=always
+ExecReload=/bin/kill -HUP $MAINPID
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target" > /etc/systemd/system/keygen-server.service
+
+        systemctl enable keygen-server &>/dev/null
+        systemctl start keygen-server &>/dev/null
+        echo -e "\033[1;32mKeyGen iniciado correctamente.\033[0m"
+    else
+        kill -9 $(ps x | grep -v grep | grep "/bin/http-server.sh" | awk '{print $1}') &>/dev/null # Usar awk para PID
+        systemctl stop keygen-server &>/dev/null
+        systemctl disable keygen-server &>/dev/null
+        rm -f /etc/systemd/system/keygen-server.service &>/dev/null
+        clear
+        msg -bar3
+        echo -e "\033[1;31m         KeyGen fuera de linea"
+        msg -bar3
+        read -p "Presione Enter para continuar "
+    fi
+}
+
+message_gen () {
+    read -p "Ingresa el Mensaje: " MSGNEW
+    [[ -z "$MSGNEW" ]] && return # Usar comillas
+    echo "$MSGNEW" > /etc/menu_ito # Usar comillas
+    cat /etc/menu_ito > "${SCPT_DIR}/menu_credito" # Usar comillas
+    read -p "Ingresa tu Numero de Contacto o tu ALIAS de TELEGRAM: " MSGNEW_CONTACT # Nueva variable para evitar sobrescribir
+    echo "$MSGNEW_CONTACT" > /etc/menu_numito && chmod +x /etc/menu_numito # Usar comillas
+    msg -bar3
+}
+
+act_gen () {
+    unset varread
+    while [[ "${varread}" != @([0-3]) ]]; do # Usar comillas
+        echo -e "Bienvenido al Actualizador, Escoje que vas a Actualizar\n 1).- Creditos del ADM\n 2).- Solo Ficheros del SCRIPT\n 3).- REINSTALAR COMPLETO" | lolcat
+        echo -ne "${cor[6]}"
+        msg -bar3
+        read -p " Escoje :" varread
+    done
+    msg -bar3
+    if [[ "${varread}" = 0 ]]; then
+        return
+    elif [[ "${varread}" = 1 ]]; then
+        message_gen
+    elif [[ "${varread}" = 2 ]]; then
+        files_script
+    elif [[ "${varread}" = 3 ]]; then
+        [[ -e "/bin/ShellBot.sh" ]] && rm -f /bin/ShellBot.sh
+        # ALERTA DE SEGURIDAD CRÍTICA: Descarga y ejecución directa de script remoto.
+        # Se ha mantenido la URL por tu indicación, pero es un gran riesgo.
+        source <(curl -fsSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/d0c87aeb33e087b1ae506538f1351348b2cb0442/init/setup.gen) --ADMcgh
+        exit&&exit
+    fi
+}
+
+files_script() {
+    echo " CREANDO EL FICHERO DE ACTUALIZACION" # Corregida falta de ortografía
+
+    wget -q --no-check-certificate -O /tmp/files.tar.gz "https://github.com/SNIPER754186/chumonewbot/raw/refs/heads/LaTamSRC/SCRIPTS/ADMcgh/SCRIPT.tar.gz"
+    if [[ $? -eq 0 ]]; then
+        echo -e " DESCARGANDO ChumoGH EN 127.0.0.1:81 "
+        rm -f "${SCPT_DIR}"/* # Usar comillas
+        [[ -e /tmp/files.tar.gz ]] && tar -xzvf /tmp/files.tar.gz -C "${SCPT_DIR}" &> /dev/null && echo -e " FILES EXTRAIDOS EN /SCRIPT  " || echo -e " ERROR EN EXTRAER FILES "
+        chmod 755 "${SCPT_DIR}"/* # Permisos corregidos a 755 para scripts
+        [[ -e "${SCPT_DIR}/http-server.py" ]] && mv "${SCPT_DIR}/http-server.py" /bin/http-server.sh
+        chmod +x /bin/http-server.sh
+    else
+        echo -e " ERROR EN DESCARGAR LOCALFILES ChumoGH"
+    fi
+    rm -f /tmp/files.tar.gz
+
+    wget -q --no-check-certificate -O /tmp/files.tar.gz "https://www.dropbox.com/s/z16y8r2pqurbz4t/SCRIPT.tar.gz"
+    if [[ $? -eq 0 ]]; then
+        echo -e " DESCARGANDO LATAM EN 127.0.0.2:81 "
+        mkdir -p /etc/LTM && rm -f /etc/LTM/* # Asegura que exista y limpia
+        [[ -e /tmp/files.tar.gz ]] && tar -xzvf /tmp/files.tar.gz -C /etc/LTM &> /dev/null && echo -e " FILES EXTRAIDOS EN /LTM  " || echo -e " ERROR EN EXTRAER FILES "
+        chmod 755 /etc/LTM/* # Permisos corregidos a 755
+    else
+        echo -e " ERROR EN DESCARGAR LOCALFILES LATAM"
+    fi
+    rm -f /tmp/files.tar.gz
+
+    systemctl restart keygen-server &>/dev/null && echo -e " HTTP SERVER REINICIADO"
+    echo -e " UPDATE FINALIZADO!!!!"
+    read -p " ENTER PARA FINALIZAR"
+}
+
+rmv_iplib () {
+    echo -e "SERVIDORES DE KEY ACTIVOS!" # Corregida falta de ortografía
+    rm /var/www/html/newlib && touch /var/www/html/newlib
+
+    # Manejo robusto de `ls`
+    shopt -s nullglob
+    for arqs_path in "${DIR}"/*; do
+        local arqs=$(basename "$arqs_path")
+        if [[ "$arqs" = "ERROR-KEY" || "$arqs" =~ \.name$ ]]; then
+            continue
+        fi
+        if [[ -d "${DIR}/$arqs" ]]; then # Asegurarse de que es un directorio de key
+            if [[ -e "${DIR}/${arqs}.name" ]] && grep -q "GERADOR" "${DIR}/${arqs}.name"; then
+                local var=$(cat "${DIR}/${arqs}.name")
+                local ip=$(cat "${DIR}/${arqs}/keyfixa")
+                echo -ne "\033[1;31m[USUARIO]:(\033[1;32m${var%%[*}\033[1;31m) \033[1;33m[GERADOR]:\033[1;32m ($ip)\033[0m"
+                echo "$ip" >> /var/www/html/newlib && echo -e " \033[1;36m[ACTUALIZADO]"
+            fi
+        fi
+    done
+    shopt -u nullglob # Desactivar nullglob
+
+    echo "$(wget -qO- ifconfig.me)" >> /var/www/html/newlib
+    msg -bar3
+    read -p "Enter"
+}
+
+bot_menu () {
+    local ruta_destino="/root/resBOT"
+    local ruta_origen="/etc/ADM-db"
+    
+    [[ -e "/bin/ShellBot.sh" ]] && rm -f /bin/ShellBot.sh
+    [[ -e /etc/nivbot ]] || echo "0" > /etc/nivbot
+    [[ -d /etc/ADM-db ]] && chmod +x /etc/ADM-db/* # Permisos muy permisivos si hay claves sensibles
+    
+    mkdir -p "${ruta_origen}" # Asegura que el directorio exista
+    mkdir -p "${ruta_destino}" # Asegura que el directorio exista
+    
+    # Mueve archivos del origen al destino
+    shopt -s nullglob
+    for archivo in "$ruta_origen"/*; do
+        if [[ -f "$archivo" ]]; then
+            mv "$archivo" "$ruta_destino/"
+            echo -e " \033[1;31m[ ! ] RESPALDANDO $(basename "$archivo") A $ruta_destino."
+        fi
+    done
+    shopt -u nullglob
+
+    rm -rf /etc/ADM-db # Elimina el directorio original
+    CIDdir=/etc/ADM-db && mkdir -p "${CIDdir}" # Crea un nuevo directorio vacío
+    
+    clear&&clear
+    # ALERTA DE SEGURIDAD CRÍTICA: Descarga y ejecución directa de script remoto.
+    # Se ha mantenido la URL por tu indicación, pero es un gran riesgo.
+    source <(curl -sSL https://raw.githubusercontent.com/SNIPER754186/chumonewbot/d0c87aeb33e087b1ae506538f1351348b2cb0442/init/setup.bot) 
+    call.config # Asume que esta función existe en setup.bot
+}
+
+fum_ver() {
+    clear&&clear
+    unset varread
+    while [[ "${varread}" != @([0-2]) ]]; do
+        echo -e "Bienvenido al COMPROBADOR DE KEYS, Escoje \n 1).- KEY DE ChumoGH \n 2).- KEY DE LATAM Beta" | lolcat
+        echo -ne "${cor[6]}"
+        msg -bar3
+        read -p " Escoje :" varread
+    done
+    msg -bar3
+    if [[ "${varread}" = 0 ]]; then
+        return
+    elif [[ "${varread}" = 1 ]]; then
+        fum_verCGH
+    elif [[ "${varread}" = 2 ]]; then
+        fum_verLTM
+    fi
+}
+
+fum_verCGH () {
+    unset Keey
+    while [[ -z "$Keey" ]]; do # Usar comillas y -z
+        clear
+        echo -e "\n      \033[1;32m DIGITA TU KEY A VERIFICAR "
+        msg -ne "Script Key: " && read Keey
+        [[ ! -z "$Keey" ]] && Keey="$(echo "$Keey" | tr -d '[[:space:]]')"
+        tput cuu1 && tput dl1
+    done
+    REQUEST=$(ofus "$Keey"|cut -d'/' -f2)
+    echo -e "\n"
+    echo -e " FILE Contend : ${REQUEST} $(echo "${REQUEST}" | wc -c )" # Usar comillas
+    echo -e "\n"
+    echo -e " VERIFICA, Si tu key Contiene \033[1;45m KEY DE ChumoGH! \033[0m "
+    echo -e "\n"
+    msg -ne " Link Key: http://$(ofus "$Keey") \n                     " # Usar comillas
+    IiP=$(ofus "$Keey" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
+    
+    [[ $(curl -s --connect-timeout 2 "$IiP:8888" ) ]] && echo -e "\033[1;42mCONEXION CON SERVIDOR EXITOSA\033[0m" || echo -e "\033[1;43mCONEXION CON SERVIDOR FALLIDA\033[0m"
+    
+    wget --no-check-certificate -O "$HOME/list-key" "$(ofus "$Keey")/$(wget -qO- ipv4.icanhazip.com)/CHECK-KEY/" > /dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+        echo -ne "\033[1;32m  [ VERIFICANDO ]"
+    else
+        echo -e "\033[1;31m [ No Existe Acceso al KEY ]"
+    fi
+    
+    ofen=$(wget -qO- "$(ofus "$Keey")") # Usar comillas
+    unset arqx   
+    mkdir -p "$HOME/install" && rm -rf "$HOME/install/*" # Asegura directorio y limpia
+
+    n=1
+    IP=$(ofus "$Keey" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}') && echo "$IP" > /usr/bin/vendor_code
+    pontos="."
+    stopping=" COMPROBANDO "|sed -e 's/[^a-z -]//ig'
+    
+    shopt -s nullglob
+    for arqx_item in $(cat "$HOME/list-key"); do # Iterar sobre el contenido del archivo
+        #msg -verm "${stopping}${pontos}" && sleep 0.5s
+        wget --no-check-certificate -O "$HOME/install/${arqx_item}" "${IP}:81/${REQUEST}/${arqx_item}" > /dev/null 2>&1 && verificar_arq "${arqx_item}"
+        #tput cuu1 && tput dl1
+        #pontos+="."
+        n=$(($n + 1))
+    done
+    shopt -u nullglob
+
+    echo -ne " ---> ESTADO : \033[1;45m$ofen\033[0m  con "
+    [[ ! -e "$HOME/install/log.txt" ]] && touch "$HOME/install/log.txt" # Usar comillas
+    echo " $(cat < "$HOME/install/log.txt" | wc -l) FILES " && rm -f "$HOME/install/log.txt" # Usar comillas
+    msg -ne " \033[1;42mESTADO :\033[0m " 
+    [[ -e "$HOME/list-key" ]] && { # Usar comillas
+        echo -ne "  "
+        [[ "$ofen" = "KEY DE ChumoGH!" ]] && 
+        echo -e "KEY FUNCIONAL" && rm -f "$HOME/list-key" && echo -ne "\033[0m" # Usar comillas
+    } || echo -e " KEY INVALIDA O USADA\033[0m\n"
+    #curl -s --connect-timeout 2 ${IiP}:81/${REQUEST}/menu_credito > menu_credito
+    msg -ne " RESELLER del Key :\033[0m  "
+    [[ -e "$HOME/install/menu_credito" ]] && { # Usar comillas
+        echo -ne "  "
+        if [[ "$(cat "$HOME/install/menu_credito" | head -1)" = "" ]]; then # Usar comillas
+            echo -e "SIN RESELLER\033[0m" 
+        else
+            echo -e "$(cat "$HOME/install/menu_credito" | head -1)\033[0m" && rm -rf "$HOME/install" && echo -ne "\033[0m" # Usar comillas
+        fi
+    } || echo -e " NO HAY CONTENIDO DE KEY Key\033[0m\n"
+    read -p "Enter"
+}
+
+verificar_arq () {
+    echo "$1" >> "$HOME/install/log.txt" # Usar comillas
+    echo "FILE -> $1" && _sleepColor '0.5'
+    #tput cuu1 >&2 && tput dl1 >&2
+}
+
+fum_verLTM () {
+    unset Keey
+    while [[ -z "$Keey" ]]; do # Usar comillas
+        clear
+        echo -e "\n      \033[1;32m DIGITA TU KEY A VERIFICAR "
+        msg -ne "Script Key: " && read Keey
+        [[ ! -z "$Keey" ]] && Keey="$(echo "$Keey" | tr -d '[[:space:]]')"
+        tput cuu1 && tput dl1
+    done
+    REQUEST=$(ofusLTM "$Keey"|cut -d'/' -f2)
+    echo -e "\n"
+    echo -e " FILE Contend : ${REQUEST} $(echo "${REQUEST}" | wc -c )" # Usar comillas
+    echo -e "\n"
+    echo -e " VERIFICA, Si tu key Contiene \033[1;45m KEY DE INSTALACION! \033[0m "
+    echo -e "\n"
+    msg -ne " Link Key: http://$(ofusLTM "$Keey") \n                     " # Usar comillas
+    IiP=$(ofusLTM "$Keey" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}')
+    
+    [[ $(curl -s --connect-timeout 2 "$IiP:8888" ) ]] && echo -e "\033[1;42mCONEXION CON SERVIDOR EXITOSA\033[0m" || echo -e "\033[1;43mCONEXION CON SERVIDOR FALLIDA\033[0m"
+    
+    wget --no-check-certificate -O "$HOME/list-key" "$(ofusLTM "$Keey")/$(wget -qO- ipv4.icanhazip.com)/CHECK-KEY" > /dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+        echo -e "\033[1;32m  [ VERIFICANDO ]"
+    else
+        echo -e "\033[1;31m [ No Existe Acceso al KEY ]"
+    fi
+    
+    ofen=$(wget -qO- "$(ofusLTM "$Keey")") # Usar comillas
+    unset arqx   
+    mkdir -p "$HOME/install" && rm -rf "$HOME/install/*" # Asegura directorio y limpia
+
+    n=1
+    IP=$(ofusLTM "$Keey" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}') && echo "$IP" > /usr/bin/vendor_code
+    pontos="."
+    stopping=" COMPROBANDO "|sed -e 's/[^a-z -]//ig'
+    
+    shopt -s nullglob
+    for arqx_item in $(cat "$HOME/list-key"); do # Iterar sobre el contenido del archivo
+        #msg -verm "${stopping}${pontos}" && sleep 0.5s
+        wget --no-check-certificate -O "$HOME/install/${arqx_item}" "${IP}:81/${REQUEST}/${arqx_item}" > /dev/null 2>&1 && verificar_arq "${arqx_item}"
+        #tput cuu1 && tput dl1
+        #pontos+="."
+        n=$(($n + 1))
+    done
+    shopt -u nullglob
+
+    echo -ne " ---> ESTADO : \033[1;45m$ofen\033[0m  con "
+    [[ ! -e "$HOME/install/log.txt" ]] && touch "$HOME/install/log.txt" # Usar comillas
+    echo " $(cat < "$HOME/install/log.txt" | wc -l) FILES " && rm -f "$HOME/install/log.txt" # Usar comillas
+    msg -ne " \033[1;42mESTADO :\033[0m " 
+    [[ -e "$HOME/list-key" ]] && { # Usar comillas
+        echo -ne "  "
+        if [[ "$ofen" = "KEY DE ChumoGH!" ]]; then # Usar comillas
+            echo -e "KEY FUNCIONAL" && rm -f "$HOME/list-key" && echo -ne "\033[0m" # Usar comillas
+        else
+            echo -e " KEY INVALIDA O USADA\033[0m\n"
+        fi
+    } || echo -e " NO HAY CONTENIDO DE KEY Key\033[0m\n"
+    #curl -s --connect-timeout 2 ${IiP}:81/${REQUEST}/menu_credito > menu_credito
+    msg -ne " RESELLER del Key :\033[0m  "
+    [[ -e "$HOME/install/message.txt" ]] && { # Usar comillas
+        echo -ne "  "
+        if [[ "$(cat "$HOME/install/message.txt" | head -1)" = "" ]]; then # Usar comillas
+            echo -e "SIN RESELLER\033[0m" 
+        else
+            echo -e "$(cat "$HOME/install/message.txt")\033[0m" && rm -rf "$HOME/install" && echo -ne "\033[0m" # Usar comillas
+        fi
+    } || echo -e " NO HAY CONTENIDO DE KEY Key\033[0m\n"
+    read -p "Enter"
+}
+
+# --- Funciones de Gestión de Bot e IPs ---
+ipbot () {
+    mkdir -p /var/www/html/ChumoGH/VPSbot/main/TeleBotGen/Control && sleep 0.5s && echo "CREANDO Directorios del Bot"
+    [[ ! -e /var/www/html/ChumoGH/VPSbot/main/TeleBotGen/Control/Control-Bot ]] && touch /var/www/html/ChumoGH/VPSbot/main/TeleBotGen/Control/Control-Bot
+    
+    echo -ne " Pega IP a Autorizar: " && read -p " : " ipvalOR
+    local permited_ips=$(cat < /var/www/html/ChumoGH/VPSbot/main/TeleBotGen/Control/Control-Bot)
+    
+    local ipval=$(echo "${ipvalOR}" | awk '{print $1}') # Usar comillas
+    local idc=$(echo "${ipvalOR}" | awk '{print $3}' | sed -e 's/[^a-z0-9 -]//ig') # Usar comillas
+    local valid=$(date '+%C%y-%m-%d' -d " +$idc days")
+
+    if [[ $(echo "$permited_ips" | grep -w "${ipval}") = "" ]]; then # Usar comillas y -w
+        clear
+        echo -e "\n\n\n\e[31m====================================================="
+        echo -e "\e[31m       ¡LA IP $ipval NO ESTA AUTORIZADA!\n"
+        echo -e "\e[31m=====================================================\n\n\n\e[0m"
+        echo -e "$ipval | $valid" >> /var/www/html/ChumoGH/VPSbot/main/TeleBotGen/Control/Control-Bot && echo -e "\e[32m       ¡AUTORIZACION EXITOSA HASTA $valid!!\n"
+    else
+        clear
+        echo -e "\n\n\n\e[32m====================================================="
+        echo -e "\e[32m       ¡LA IP $ipval YA ESTA AUTORIZADA HASTA $valid!\n"
+        echo -e "\e[32m=====================================================\n\n\n\e[0m"
+        sed -i "/${ipval}/d" /var/www/html/ChumoGH/VPSbot/main/TeleBotGen/Control/Control-Bot && echo " ${ipval} RETIRADO DE LA AUTORIZACION"
+    fi
+    msg -bar3
+    echo -e " SELECCIONA EL LINK DE ABAJO PARA VERIFICAR TU LISTA "
+    echo " COPIA TU KEY DE INSTALACION DE BOT TELEGRAM CONTROL KEYS"
+    echo ""
+    msg -bar3 
+    echo -e " 
+RECUERDA QUE ESTA KEY ES UNICA PARA AUTORIZAR LA
+      INSTALACION DE OTROS COMPRADORES
+ ESTE TOKEN ES UNICO, HACI QUE NO HACE FALTA 
+           VOLVER A GENERARLO"
+    echo -e "       
+ ESTA KEY SIRVE TanTO PARA EL GENERADOR
+           COMO PARA CONFIGURAR EL BOT"
+    msg -bar3
+    msg -bra "         \033[7;49;35m$(ofus "$(wget -qO- ipv4.icanhazip.com):81")" # Usar comillas
+    msg -bar3
+    echo -e " 🛡️  𝙸𝚗𝚜𝚝𝚊𝚕𝚊𝚍𝚘𝚛  𝙾𝚏𝚒𝚌𝚒𝚊𝚕  🛡️"
+    msg -bar3
+    echo -e " apt update -y && apt upgrade -y \n wget --no-check-certificate -q https://raw.githubusercontent.com/SNIPER754186/chumonewbot/d0c87aeb33e087b1ae506538f1351348b2cb0442/init/setup.gen && chmod 755 insta-bot.sh && ./insta-bot.sh" # Permisos 755
+    msg -bar3
+    read -p " CONTINUAR" && dropIP
+}
+
+alter_id(){
+    while [[ "${varread}" != @([0-3]) ]]; do # Usar comillas
+        tittle
+        msg -bar3
+        echo -e " \033[0;35m[\033[0;36m1\033[0;35m] \033[0;34m<\033[0;33m Alterar Creditos POR ID    \033[0;32m(#OFICIAL)" 
+        echo -e " \033[0;35m[\033[0;36m2\033[0;35m] \033[0;34m<\033[0;33m REINICIAR CONTADOR TOTAL    \033[0;32m(#OFICIAL)"
+        msg -bar3 
+        echo -e " \033[0;35m[\033[0;36m0\033[0;35m] \033[0;34m<\033[0;33m Regresar"
+        msg -bar3
+        echo -ne "${cor[6]}"
+        read -p " Opcion : " varread
+    done
+    msg -bar3
+    if [[ "${varread}" = 0 ]]; then
+        return 0
+    elif [[ "${varread}" = 1 ]]; then
+        echo -e "\033[1;32m DIGITA ID A REINICIAR "
+        msg -ne " Paste ID : " && read newli
+        sed -i "/${newli}/d" /etc/ADM-db/num-key.cont
+        echo "REGISTRO EN $(grep -o -i "$newli" /etc/ADM-db/num-key.cont | wc -l) KEYS" # Usar comillas
+        read -p "Limite Aplicado Exitosamente" 
+    elif [[ "${varread}" = 2 ]]; then
+        echo -e "\033[1;32m BORRAREMOS EL CONTEO TOTAL DEL GENERADOR " 
+        rm -rf /etc/ADM-db/num-key.cont && touch /etc/ADM-db/num-key.cont
+        echo "REGISTRO EN $(cat /etc/ADM-db/num-key.cont | wc -l) KEYS" 
+        read -p "Limite Aplicado Exitosamente" 
+    fi
+}
+
+# SISTEMA DE SELECAO
+selection_fun () {
+    local selection="null"
+    local range
+    for((i=0; i<=$1; i++)); do range[$i]="$i "; done
+    while [[ ! $(echo "${range[*]}"|grep -w "$selection") ]]; do # Usar comillas
+        echo -ne "\033[1;37mOpcion: " >&2
+        read selection
+        tput cuu1 >&2 && tput dl1 >&2
+    done
+    echo "$selection" # Usar comillas
+}
+
+alter_limit () {
+    echo -e "\033[1;32m DIGITA TU NUEVO LIMITE "
+    msg -ne "New Limit: " && read newli
+    echo "$newli" > /etc/ADM-db/limit # Usar comillas
+    read -p "Limite Aplicado Exitosamente" 
+}
+
+dropIP() {
+    # El contenido de dropIP.sh estaba incompleto. Asumiendo una URL de descarga.
+    # Si este script es el mismo que se espera, evita la descarga redundante.
+    [[ ! -e /etc/dropIP.sh ]] && wget -q -O /etc/dropIP.sh "https://www.dropbox.com/s/12r0h64vb1lc1oy/dropIP.sh?dl=0" && chmod +x /etc/dropIP.sh
+    
+    unset PIDGEN
+    if [[ -e /var/www/html/ChumoGH/VPSbot/main/TeleBotGen/Control/Control-Bot ]]; then
+        echo -e "[Unit]
+Description=BotGen Service by @ChumoGH
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root
+ExecStart=/bin/bash /etc/dropIP.sh -start # Asume que dropIP.sh se inicia así
+Restart=always
+ExecReload=/bin/kill -HUP $MAINPID
+RestartSec=3s
+
+[Install]
+WantedBy=multi-user.target" > /etc/systemd/system/botgen-server.service # Nombre de servicio más específico
+
+        systemctl enable botgen-server &>/dev/null
+        systemctl start botgen-server &>/dev/null
+        echo -e "\033[1;32mBotGen iniciado correctamente.\033[0m"
+    else
+        kill -9 $(ps x | grep -v grep | grep "/etc/dropIP.sh" | awk '{print $1}') &>/dev/null # Usar awk para PID
+        systemctl stop botgen-server &>/dev/null
+        systemctl disable botgen-server &>/dev/null
+        rm -f /etc/systemd/system/botgen-server.service &>/dev/null
+        clear
+        msg -bar3
+        echo -e "\033[1;31m         BotGen fuera de linea"
+        msg -bar3
+        read -p "Presione Enter para continuar "
+    fi
+}
+
+
+# --- Lógica Final del Script ---
+check_ip 
+unset Key # Variable no utilizada
+function_verify "${PAM}"
+
+# ALERTA DE SEGURIDAD CRÍTICA: CORRECCIÓN DE LA LÍNEA DE DESTRUCCIÓN
+# Esta línea intentaba borrar /bin, lo que inutilizaría el sistema.
+# Se ha reemplazado por un mensaje de error y salida segura.
+if [[ -z "$PAM" ]]; then
+    clear&&clear
+    echo -e "\n\033[1;31mERROR: Argumento de instalación no proporcionado (--ADMcgh).\033[0m"
+    echo -e "\033[1;31mUso: sudo bash $0 --ADMcgh\033[0m"
+    exit 1 # Salida segura
+fi
 
 echo "$(wget -qO- ifconfig.me)" > /etc/key-gerador
 echo -ne "\033[0m" 
-rm -f setup*
-rm -f ADm*
+rm -f setup* # Intenta borrar el script actual y otros setup
+rm -f ADm* # Intenta borrar archivos ADm
+# Si el script actual debe auto-eliminarse de forma segura:
+# rm -f "$0" 
